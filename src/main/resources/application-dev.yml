@@ -1,0 +1,21 @@
+server:
+  address: localhost
+  port: 8181
+  servlet:
+    context-path: /
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbc-url: jdbc:mysql://127.0.0.1:3306/elasticsearch_house?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: root
+
+
+  jpa:
+    database: mysql
+    show-sql: true  # 控制台输出格式化的JPA执行过程中的SQL，方便调试开发
+    hibernate:
+      ddl-auto: validate  # 每次加载hibernate时，验证创建数据库表结构，只会和数据库中的表进行比较，不会创建新表，但是会插入新值。
+
+  session:
+    store-type: none  # session会话存储类型
