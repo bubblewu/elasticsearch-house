@@ -1,2 +1,2 @@
 # elasticsearch-house
-基于ElasticSearch的租房管理系统
+基于Elasticsearch的租房搜索系统
