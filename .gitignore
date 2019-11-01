@@ -21,4 +21,4 @@ model**.txt
 /logs
 #*.txt
 /src/main/resources/data/*
-/src/test/*
+#/src/test/*
