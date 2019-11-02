@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+//import com.bubble.house.dao.UserRepository;
+
 /**
  * 用户表测试用例
  *
@@ -22,5 +24,6 @@ public class UserRepositoryTest extends ApplicationTests {
         Assertions.assertEquals("bubble", user.getName());
 //        Assertions.assertTrue("bubble".equals(user.getName()), "testFindById测试成功");
     }
+
 
 }
