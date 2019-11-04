@@ -8,7 +8,9 @@ spring:
     restart:
       enabled: true  # 热部署生效
       # 设置重启的目录,添加那个目录的文件需要restart
-      additional-paths: src/main/java;src/main/resources
+      additional-paths: src/main/java,src/main/resources
+      # 不需实时加载
+      exclude: db/** #,static/**
   # thymeleaf通用配置
   thymeleaf:
     mode: HTML
@@ -23,3 +25,8 @@ spring:
       force: true
       charset: UTF-8
       enabled: true
+# 拦截器配置
+server:
+  error:
+    whitelabel:
+      enabled: false  # 步入SpringBoot框架自动生成whitelabel页面

@@ -1,8 +1,5 @@
 package com.bubble.house.config;
 
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.alibaba.fastjson.support.config.FastJsonConfig;
-import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -10,12 +7,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.*;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
-
-import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * Web相关的配置类:
@@ -28,7 +21,7 @@ import java.util.List;
 @EnableWebMvc
 public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
     @Value("${spring.thymeleaf.cache}")
-    private boolean thymeleafCacheEnable = true;
+    private boolean thymeleafCacheEnable;
 
     private ApplicationContext applicationContext;
 
@@ -91,26 +84,26 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         registry.addViewController("/").setViewName("/index");
     }
 
-    /**
-     * 消息内容转换配置，配置fastJson返回json转换
-     */
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        // 创建fastJson消息转换器
-        FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
-        // 创建配置类
-        FastJsonConfig fastJsonConfig = new FastJsonConfig();
-        // 修改配置返回内容的过滤
-        fastJsonConfig.setSerializerFeatures(
-                SerializerFeature.DisableCircularReferenceDetect,
-                SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteNullStringAsEmpty
-        );
-        fastJsonConfig.setCharset(Charset.defaultCharset());
-        fastConverter.setFastJsonConfig(fastJsonConfig);
-        // 将fastjson添加到视图消息转换器列表内
-        converters.add(fastConverter);
-        System.out.println("FastJson消息内容转换");
-    }
+//    /**
+//     * 消息内容转换配置，配置fastJson返回json转换
+//     */
+//    @Override
+//    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+//        // 创建fastJson消息转换器
+//        FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
+//        // 创建配置类
+//        FastJsonConfig fastJsonConfig = new FastJsonConfig();
+//        // 修改配置返回内容的过滤
+//        fastJsonConfig.setSerializerFeatures(
+//                SerializerFeature.DisableCircularReferenceDetect,
+//                SerializerFeature.WriteMapNullValue,
+//                SerializerFeature.WriteNullStringAsEmpty
+//        );
+//        fastJsonConfig.setCharset(Charset.defaultCharset());
+//        fastConverter.setFastJsonConfig(fastJsonConfig);
+//        // 将fastjson添加到视图消息转换器列表内
+//        converters.add(fastConverter);
+//        System.out.println("FastJson消息内容转换");
+//    }
 
 }
