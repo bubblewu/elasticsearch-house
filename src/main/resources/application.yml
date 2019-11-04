@@ -3,6 +3,12 @@ spring:
     active: dev
   main:
     allow-bean-definition-overriding: true
+  # 热部署
+  devtools:
+    restart:
+      enabled: true  # 热部署生效
+      # 设置重启的目录,添加那个目录的文件需要restart
+      additional-paths: src/main/java;src/main/resources
   # thymeleaf通用配置
   thymeleaf:
     mode: HTML
