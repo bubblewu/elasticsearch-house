@@ -17,3 +17,9 @@ spring:
     # dev环境为false，避免修改模版重启服务器
     cache: false
     encoding: UTF-8
+  # 解决返回结果中文乱码问题
+  http:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true

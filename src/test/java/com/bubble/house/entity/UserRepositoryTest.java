@@ -1,7 +1,7 @@
 package com.bubble.house.entity;
 
 import com.bubble.house.ApplicationTests;
-import com.bubble.house.dao.UserRepository;
+import com.bubble.house.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

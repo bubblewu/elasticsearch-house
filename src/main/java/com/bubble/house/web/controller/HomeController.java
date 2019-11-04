@@ -1,8 +1,10 @@
 package com.bubble.house.web.controller;
 
+import com.bubble.house.base.api.ApiResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * 首页
@@ -19,6 +21,12 @@ public class HomeController {
         model.addAttribute("name", "Bubble");
         System.out.println("打开index...");
         return "index";
+    }
+
+    @GetMapping(value = "test/status")
+    @ResponseBody
+    public ApiResponse get() {
+        return ApiResponse.ofMessage(200, "请求成功");
     }
 
 }

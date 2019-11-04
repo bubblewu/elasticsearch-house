@@ -1,4 +1,4 @@
-package com.bubble.house.dao;
+package com.bubble.house.repository;
 
 import com.bubble.house.entity.UserEntity;
 import org.springframework.data.repository.CrudRepository;

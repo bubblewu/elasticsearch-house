@@ -22,7 +22,7 @@ import javax.sql.DataSource;
  * date: 2019-11-01 14:36
  **/
 @Configuration
-@EnableJpaRepositories(basePackages = "com.bubble.house.dao")
+@EnableJpaRepositories(basePackages = "com.bubble.house.repository")
 //// 允许事务管理
 @EnableTransactionManagement
 public class JPAConfig {

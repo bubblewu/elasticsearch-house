@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.*;
 import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -62,7 +63,7 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
      * 跨域支持：
      * 跨域是指不同域名之间相互访问。
      * 例如：电脑上有2个服务器 192.168.0.11 192.168.0.12
-     *      如果第一个服务器上的页面要访问第二个服务，就叫做跨域。
+     * 如果第一个服务器上的页面要访问第二个服务，就叫做跨域。
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -105,10 +106,11 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
                 SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteNullStringAsEmpty
         );
+        fastJsonConfig.setCharset(Charset.defaultCharset());
         fastConverter.setFastJsonConfig(fastJsonConfig);
         // 将fastjson添加到视图消息转换器列表内
         converters.add(fastConverter);
+        System.out.println("FastJson消息内容转换");
     }
-
 
 }
