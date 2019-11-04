@@ -37,14 +37,6 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
     }
 
     /**
-     * 静态资源加载配置
-     */
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
-    }
-
-    /**
      * 模板资源解析器
      */
     @Bean
@@ -55,6 +47,15 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(thymeleafCacheEnable);
         return templateResolver;
+    }
+
+    /**
+     * 静态资源加载配置
+     */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 静态资源处理路径和绝对路径
+        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
     }
 
     /**

@@ -15,6 +15,8 @@ public class HomeController {
 
     @GetMapping(value = {"/", "/index"})
     public String index(Model model) {
+        // 动态加载：指定变量数据
+        model.addAttribute("name", "Bubble");
         System.out.println("打开index...");
         return "index";
     }
