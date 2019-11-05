@@ -7,6 +7,7 @@ import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.service.house.AddressService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -35,6 +36,19 @@ public class HouseController {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
         return ApiResponse.ofSuccess(result.getResult());
+    }
+
+    /**
+     * 获取对应城市支持区域列表
+     */
+    @GetMapping("address/support/regions")
+    @ResponseBody
+    public ApiResponse getSupportRegions(@RequestParam(name = "city_name") String cityEnName) {
+        MultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(cityEnName);
+        if (addressResult.getResult() == null || addressResult.getTotal() < 1) {
+            return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
+        }
+        return ApiResponse.ofSuccess(addressResult.getResult());
     }
 
 

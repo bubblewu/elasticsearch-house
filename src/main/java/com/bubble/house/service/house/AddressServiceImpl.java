@@ -4,7 +4,6 @@ import com.bubble.house.entity.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.repository.CityRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.List;
 public class AddressServiceImpl implements AddressService {
 
     private CityRepository cityRepository;
+
     public AddressServiceImpl(CityRepository cityRepository) {
         this.cityRepository = cityRepository;
     }
@@ -27,6 +27,15 @@ public class AddressServiceImpl implements AddressService {
     public MultiResultEntity<CityEntity> findAllCities() {
         List<CityEntity> cityEntityList = this.cityRepository.findAllByLevel(CityLevel.CITY.getValue());
         return new MultiResultEntity<>(cityEntityList.size(), cityEntityList);
+    }
+
+    @Override
+    public MultiResultEntity<CityEntity> findAllRegionsByCityEnName(String cityEnName) {
+        if (null == cityEnName) {
+            return new MultiResultEntity<>(0, null);
+        }
+        List<CityEntity> regions = this.cityRepository.findAllByLevelAndBelongTo(CityLevel.REGION.getValue(), cityEnName);
+        return new MultiResultEntity<>(regions.size(), regions);
     }
 
 }
