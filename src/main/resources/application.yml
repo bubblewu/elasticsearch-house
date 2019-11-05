@@ -25,8 +25,23 @@ spring:
       force: true
       charset: UTF-8
       enabled: true
+    # multipart config
+    multipart:
+      enabled: true
+      location: /Users/wugang/code/java/elasticsearch-house/tmp/images/
+      file-size-threshold: 5MB
+      max-request-size: 20MB
+
+
 # 拦截器配置
 server:
   error:
     whitelabel:
       enabled: false  # 步入SpringBoot框架自动生成whitelabel页面
+
+qiniu:
+  access-key: fhNhMp75E1uiaySLQXqOqnWQ2AGZ_pYpe-8U5gxN
+  secret-key: o1VsJLR9na35W86EAJ6TTmKermQZkhQ04pfxf7nd
+  bucket: newcarspicture
+  cdn:
+      prefix:

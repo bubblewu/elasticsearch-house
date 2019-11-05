@@ -22,3 +22,4 @@ model**.txt
 #*.txt
 /src/main/resources/data/*
 #/src/test/*
+/tmp/*

@@ -1,5 +1,6 @@
 package com.bubble.house.config;
 
+import com.bubble.house.config.interceptor.CustomInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
