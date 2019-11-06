@@ -4,19 +4,27 @@ import com.alibaba.fastjson.JSONObject;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.QiNiuEntity;
+import com.bubble.house.entity.dto.HouseDTO;
+import com.bubble.house.entity.house.CityEntity;
+import com.bubble.house.entity.house.CityLevel;
+import com.bubble.house.entity.param.HouseParam;
+import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.service.house.AddressService;
+import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
 import com.qiniu.http.Response;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * 后台管理中心
@@ -31,9 +39,13 @@ public class AdminController {
     private String imageLocation;
 
     private final QiNiuService qiNiuService;
+    private final AddressService addressService;
+    private final HouseService houseService;
 
-    public AdminController(QiNiuService qiNiuService) {
+    public AdminController(QiNiuService qiNiuService, AddressService addressService, HouseService houseService) {
         this.qiNiuService = qiNiuService;
+        this.addressService = addressService;
+        this.houseService = houseService;
     }
 
     /**
@@ -74,6 +86,31 @@ public class AdminController {
     @GetMapping("admin/add/house")
     public String addHousePage() {
         return "admin/house-add";
+    }
+
+    /**
+     * 新增房源接口
+     */
+    @PostMapping("admin/add/house")
+    @ResponseBody
+    public ApiResponse addHouse(@Valid @ModelAttribute("form-house-add") HouseParam houseParam, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST.value(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
+        }
+        if (houseParam.getPhotos() == null || houseParam.getCover() == null) {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), "必须上传图片");
+        }
+
+        Map<CityLevel, CityEntity> addressMap = this.addressService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
+        if (addressMap.keySet().size() != 2) {
+            return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
+        }
+
+        ResultEntity<HouseDTO> result = this.houseService.save(houseParam);
+        if (result.isSuccess()) {
+            return ApiResponse.ofSuccess(result.getResult());
+        }
+        return ApiResponse.ofSuccess(ApiStatus.NOT_VALID_PARAM);
     }
 
     /**

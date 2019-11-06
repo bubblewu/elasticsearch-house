@@ -18,7 +18,13 @@
         <java.version>1.8</java.version>
         <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
         <fastjson.version>1.2.62</fastjson.version>
-
+        <modelmapper.version>2.3.5</modelmapper.version>
+        <spring-security-core.version>5.2.0.RELEASE</spring-security-core.version>
+        <thymeleaf-extras-springsecurity4.version>3.0.4.RELEASE</thymeleaf-extras-springsecurity4.version>
+        <guava.version>28.1-jre</guava.version>
+        <qiniu-java-jdk.version>[7.2.0, 7.2.99]</qiniu-java-jdk.version>
+        <aliyun-java-sdk-core.version>4.4.6</aliyun-java-sdk-core.version>
+        <aliyun-java-sdk-dysmsapi.version>1.1.0</aliyun-java-sdk-dysmsapi.version>
     </properties>
 
     <dependencies>
@@ -44,7 +50,12 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <scope>test</scope>
+        </dependency>
+        <!-- Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
         <!-- 前端集成：thymeleaf -->
@@ -64,10 +75,22 @@
         </dependency>
 
         <!-- security -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-security</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${spring-security-core.version}</version>
+        </dependency>
+
+        <!-- Thymeleaf方言支持SpringSecurity 依赖-->
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity4</artifactId>
+            <version>${thymeleaf-extras-springsecurity4.version}</version>
+        </dependency>
 
         <!-- 工具：fastjson -->
         <dependency>
@@ -79,8 +102,33 @@
         <dependency>
             <groupId>com.qiniu</groupId>
             <artifactId>qiniu-java-sdk</artifactId>
-            <version>[7.2.0, 7.2.99]</version>
+            <version>${qiniu-java-jdk.version}</version>
         </dependency>
+        <!-- 工具： java对象自动映射 -->
+        <dependency>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
+            <version>${modelmapper.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
+        <!-- 阿里云 -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>${aliyun-java-sdk-core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+            <version>${aliyun-java-sdk-dysmsapi.version}</version>
+        </dependency>
+
 
         <!-- SpringBoot 自带的热加载开发工具 -->
         <!-- 可你参考：https://blog.csdn.net/u013508411/article/details/88896161 -->

@@ -2,7 +2,7 @@ package com.bubble.house.web.controller;
 
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
-import com.bubble.house.entity.MultiResultEntity;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;

@@ -1,11 +1,13 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.entity.MultiResultEntity;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
+import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 地点相关服务接口
@@ -45,4 +47,15 @@ public interface AddressService {
      * @return 站点集合
      */
     List<SubwayStationEntity> findAllStationBySubway(Long subwayId);
+
+    /**
+     * 根据英文简写获取具体区域的信息
+     *
+     * @param cityEnName  英文简写
+     * @param regionEnName  区域简写
+     * @return 城市信息
+     */
+    Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName);
+
+
 }

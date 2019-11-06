@@ -1,4 +1,4 @@
-package com.bubble.house.entity;
+package com.bubble.house.entity.result;
 
 import java.io.Serializable;
 import java.util.List;

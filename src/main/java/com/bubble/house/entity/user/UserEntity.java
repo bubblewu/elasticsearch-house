@@ -1,8 +1,13 @@
-package com.bubble.house.entity;
+package com.bubble.house.entity.user;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 用户
@@ -12,7 +17,7 @@ import java.util.Date;
  **/
 @Entity
 @Table(name = "user")
-public class UserEntity implements Serializable {
+public class UserEntity implements Serializable, UserDetails {
     private static final long serialVersionUID = -3364211098133184025L;
 
     @Id
@@ -33,6 +38,47 @@ public class UserEntity implements Serializable {
     @Column(name = "last_update_time")
     private Date lastUpdateTime;  // 上次更新记录时间
     private String avatar;  // 头像
+
+    @Transient
+    private List<GrantedAuthority> authorityList;
+
+    public List<GrantedAuthority> getAuthorityList() {
+        return authorityList;
+    }
+
+    public void setAuthorityList(List<GrantedAuthority> authorityList) {
+        this.authorityList = authorityList;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.authorityList;
+    }
+
+    @Override
+    public String getUsername() {
+        return name;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
     public Long getId() {
         return id;
@@ -113,4 +159,5 @@ public class UserEntity implements Serializable {
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
 }

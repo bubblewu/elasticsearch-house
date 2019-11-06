@@ -9,8 +9,7 @@ spring:
     jdbc-url: jdbc:mysql://127.0.0.1:3306/elasticsearch_house?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
     password: root
-
-
+  # JPA配置
   jpa:
     database: mysql
     show-sql: true  # 控制台输出格式化的JPA执行过程中的SQL，方便调试开发
@@ -19,3 +18,13 @@ spring:
     open-in-view: false
   session:
     store-type: none  # session会话存储类型
+  # Redis配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 0
+    timeout: 3000
+    jedis:
+      pool:
+        min-idle: 1
+

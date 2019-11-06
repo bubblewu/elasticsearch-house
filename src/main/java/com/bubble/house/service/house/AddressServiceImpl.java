@@ -1,6 +1,6 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.entity.MultiResultEntity;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
@@ -10,9 +10,7 @@ import com.bubble.house.repository.SubwayRepository;
 import com.bubble.house.repository.SubwayStationRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 地点相关服务接口实现
@@ -23,9 +21,9 @@ import java.util.Optional;
 @Service
 public class AddressServiceImpl implements AddressService {
 
-    private CityRepository cityRepository;
-    private SubwayRepository subwayRepository;
-    private SubwayStationRepository subwayStationRepository;
+    private final CityRepository cityRepository;
+    private final SubwayRepository subwayRepository;
+    private final SubwayStationRepository subwayStationRepository;
 
     public AddressServiceImpl(CityRepository cityRepository, SubwayRepository subwayRepository, SubwayStationRepository subwayStationRepository) {
         this.cityRepository = cityRepository;
@@ -61,6 +59,18 @@ public class AddressServiceImpl implements AddressService {
     public List<SubwayStationEntity> findAllStationBySubway(Long subwayId) {
         List<SubwayStationEntity> stations = this.subwayStationRepository.findAllBySubwayId(subwayId);
         return Optional.of(stations).orElse(new ArrayList<>());
+    }
+
+    @Override
+    public Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName) {
+        Map<CityLevel, CityEntity> result = new HashMap<>();
+
+        CityEntity city = this.cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
+        CityEntity region = this.cityRepository.findByEnNameAndBelongTo(regionEnName, city.getEnName());
+
+        result.put(CityLevel.CITY, city);
+        result.put(CityLevel.REGION, region);
+        return result;
     }
 
 }
