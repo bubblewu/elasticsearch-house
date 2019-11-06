@@ -1,13 +1,16 @@
 package com.bubble.house.web.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bubble.house.base.api.ApiDataTableResponse;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.QiNiuEntity;
 import com.bubble.house.entity.dto.HouseDTO;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
+import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
@@ -78,6 +81,18 @@ public class AdminController {
     @GetMapping("admin/house/list")
     public String houseListPage() {
         return "admin/house-list";
+    }
+
+    @PostMapping("admin/houses")
+    @ResponseBody
+    public ApiDataTableResponse houses(@ModelAttribute DatatableSearchParam searchBody) {
+        MultiResultEntity<HouseDTO> result = houseService.adminQuery(searchBody);
+        ApiDataTableResponse response = new ApiDataTableResponse(ApiStatus.SUCCESS);
+        response.setData(result.getResult());
+        response.setRecordsFiltered(result.getTotal());
+        response.setRecordsTotal(result.getTotal());
+        response.setDraw(searchBody.getDraw());
+        return response;
     }
 
     /**

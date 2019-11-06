@@ -1,7 +1,9 @@
 package com.bubble.house.service.house;
 
 import com.bubble.house.entity.dto.HouseDTO;
+import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 
 /**
@@ -15,5 +17,7 @@ public interface HouseService {
      * 新增House信息
      */
     ResultEntity<HouseDTO> save(HouseParam houseParam);
+
+    MultiResultEntity<HouseDTO> adminQuery(DatatableSearchParam searchBody);
 
 }

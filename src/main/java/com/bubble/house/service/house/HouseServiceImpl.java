@@ -5,15 +5,23 @@ import com.bubble.house.entity.dto.HouseDTO;
 import com.bubble.house.entity.dto.HouseDetailDTO;
 import com.bubble.house.entity.dto.HousePictureDTO;
 import com.bubble.house.entity.house.*;
+import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.param.PhotoParam;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -152,6 +160,52 @@ public class HouseServiceImpl implements HouseService {
             return new ResultEntity<>(false, "Not valid subway line!");
         }
         return null;
+    }
+
+    @Override
+    public MultiResultEntity<HouseDTO> adminQuery(DatatableSearchParam searchBody) {
+        List<HouseDTO> houseDTOS = new ArrayList<>();
+        // 分页查询
+        Sort sort = Sort.by(Sort.Direction.fromString(searchBody.getDirection()), searchBody.getOrderBy());
+        int page = searchBody.getStart() / searchBody.getLength();
+
+        Pageable pageable = PageRequest.of(page, searchBody.getLength(), sort);
+        // 添加搜索排序功能
+        Specification<HouseEntity> specification = (root, query, cb) -> {
+            // 只能查询当前用户下未删除的房源信息
+            Predicate predicate = cb.equal(root.get("adminId"), ToolKits.getLoginUserId());
+            predicate = cb.and(predicate, cb.notEqual(root.get("status"), HouseStatus.DELETED.getValue()));
+
+            if (searchBody.getCity() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("cityEnName"), searchBody.getCity()));
+            }
+            if (searchBody.getStatus() != null) {
+                predicate = cb.and(predicate, cb.equal(root.get("status"), searchBody.getStatus()));
+            }
+            if (searchBody.getCreateTimeMin() != null) {
+                predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("createTime"), searchBody.getCreateTimeMin()));
+            }
+            if (searchBody.getCreateTimeMax() != null) {
+                predicate = cb.and(predicate, cb.lessThanOrEqualTo(root.get("createTime"), searchBody.getCreateTimeMax()));
+            }
+            if (searchBody.getTitle() != null) {
+                predicate = cb.and(predicate, cb.like(root.get("title"), "%" + searchBody.getTitle() + "%"));
+            }
+            return predicate;
+        };
+
+        Page<HouseEntity> houses = houseRepository.findAll(specification, pageable);
+//        Page<HouseEntity> houses = houseRepository.findAll(pageable);
+        // 直接全部查询
+//        Iterable<HouseEntity> houses = houseRepository.findAll();
+        houses.forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(this.cdnPrefix + house.getCover());
+            houseDTOS.add(houseDTO);
+        });
+
+        return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
+//        return new MultiResultEntity<>(houseDTOS.size(), houseDTOS);
     }
 
 }
