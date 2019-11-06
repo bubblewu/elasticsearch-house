@@ -6,8 +6,11 @@ import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.QiNiuEntity;
 import com.bubble.house.entity.dto.HouseDTO;
+import com.bubble.house.entity.dto.HouseDetailDTO;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
+import com.bubble.house.entity.house.SubwayEntity;
+import com.bubble.house.entity.house.SubwayStationEntity;
 import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.result.MultiResultEntity;
@@ -20,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -83,6 +87,9 @@ public class AdminController {
         return "admin/house-list";
     }
 
+    /**
+     * House信息展示：分页、筛选、搜索
+     */
     @PostMapping("admin/houses")
     @ResponseBody
     public ApiDataTableResponse houses(@ModelAttribute DatatableSearchParam searchBody) {
@@ -156,6 +163,62 @@ public class AdminController {
         } catch (IOException e) {
             return ApiResponse.ofStatus(ApiStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    /**
+     * 房源信息编辑页
+     */
+    @GetMapping("admin/house/edit")
+    public String houseEditPage(@RequestParam(value = "id") Long id, Model model) {
+        if (id == null || id < 1) {
+            return "404";
+        }
+        ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(id);
+        if (!serviceResult.isSuccess()) {
+            return "404";
+        }
+        HouseDTO result = serviceResult.getResult();
+        model.addAttribute("house", result);
+
+        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(result.getCityEnName(), result.getRegionEnName());
+        model.addAttribute("city", addressMap.get(CityLevel.CITY));
+        model.addAttribute("region", addressMap.get(CityLevel.REGION));
+
+        HouseDetailDTO detailDTO = result.getHouseDetail();
+        ResultEntity<SubwayEntity> subwayServiceResult = addressService.findSubway(detailDTO.getSubwayLineId());
+        if (subwayServiceResult.isSuccess()) {
+            model.addAttribute("subway", subwayServiceResult.getResult());
+        }
+
+        ResultEntity<SubwayStationEntity> subwayStationServiceResult = addressService.findSubwayStation(detailDTO.getSubwayStationId());
+        if (subwayStationServiceResult.isSuccess()) {
+            model.addAttribute("station", subwayStationServiceResult.getResult());
+        }
+        return "admin/house-edit";
+    }
+
+    /**
+     * 编辑接口
+     */
+    @PostMapping("admin/house/edit")
+    @ResponseBody
+    public ApiResponse saveHouse(@Valid @ModelAttribute("form-house-edit") HouseParam houseParam, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return new ApiResponse(HttpStatus.BAD_REQUEST.value(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
+        }
+        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
+        if (addressMap.keySet().size() != 2) {
+            return ApiResponse.ofSuccess(ApiStatus.NOT_VALID_PARAM);
+        }
+
+        ResultEntity result = houseService.update(houseParam);
+        if (result.isSuccess()) {
+            return ApiResponse.ofSuccess(null);
+        }
+
+        ApiResponse response = ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
+        response.setMsg(result.getMessage());
+        return response;
     }
 
 }

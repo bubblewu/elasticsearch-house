@@ -51,16 +51,19 @@ public class HouseServiceImpl implements HouseService {
     private final HouseDetailRepository houseDetailRepository;
     private final HouseTagRepository houseTagRepository;
     private final HousePictureRepository housePictureRepository;
+    private final HouseSubscribeRepository subscribeRepository;
 
     public HouseServiceImpl(SubwayRepository subwayRepository, SubwayStationRepository subwayStationRepository,
                             HouseRepository houseRepository, HouseDetailRepository houseDetailRepository,
-                            HouseTagRepository houseTagRepository, HousePictureRepository housePictureRepository) {
+                            HouseTagRepository houseTagRepository, HousePictureRepository housePictureRepository,
+                            HouseSubscribeRepository subscribeRepository) {
         this.subwayRepository = subwayRepository;
         this.subwayStationRepository = subwayStationRepository;
         this.houseRepository = houseRepository;
         this.houseDetailRepository = houseDetailRepository;
         this.houseTagRepository = houseTagRepository;
         this.housePictureRepository = housePictureRepository;
+        this.subscribeRepository = subscribeRepository;
     }
 
     @Override
@@ -206,6 +209,75 @@ public class HouseServiceImpl implements HouseService {
 
         return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
 //        return new MultiResultEntity<>(houseDTOS.size(), houseDTOS);
+    }
+
+    @Override
+    public ResultEntity<HouseDTO> findCompleteOne(Long id) {
+        Optional<HouseEntity> houseOp = houseRepository.findById(id);
+        if (!houseOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+        HouseDetailEntity detail = houseDetailRepository.findByHouseId(id);
+        List<HousePictureEntity> pictures = housePictureRepository.findAllByHouseId(id);
+
+        HouseDetailDTO detailDTO = modelMapper.map(detail, HouseDetailDTO.class);
+        List<HousePictureDTO> pictureDTOS = new ArrayList<>();
+        for (HousePictureEntity picture : pictures) {
+            HousePictureDTO pictureDTO = modelMapper.map(picture, HousePictureDTO.class);
+            pictureDTOS.add(pictureDTO);
+        }
+        List<HouseTagEntity> tags = houseTagRepository.findAllByHouseId(id);
+        List<String> tagList = new ArrayList<>();
+        for (HouseTagEntity tag : tags) {
+            tagList.add(tag.getName());
+        }
+        HouseEntity house = houseOp.get();
+        HouseDTO result = modelMapper.map(house, HouseDTO.class);
+        result.setHouseDetail(detailDTO);
+        result.setPictures(pictureDTOS);
+        result.setTags(tagList);
+
+        if (ToolKits.getLoginUserId() > 0) { // 已登录用户
+            HouseSubscribeEntity subscribe = subscribeRepository.findByHouseIdAndUserId(house.getId(), ToolKits.getLoginUserId());
+            if (subscribe != null) {
+                result.setSubscribeStatus(subscribe.getStatus());
+            }
+        }
+        return ResultEntity.of(result);
+    }
+
+    @Override
+    public ResultEntity update(HouseParam houseParam) {
+        Optional<HouseEntity> houseOp = this.houseRepository.findById(houseParam.getId());
+        if (!houseOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+        HouseEntity house = houseOp.get();
+        HouseDetailEntity detail = this.houseDetailRepository.findByHouseId(house.getId());
+        if (detail == null) {
+            return ResultEntity.notFound();
+        }
+        ResultEntity wrapperResult = wrapperDetailInfo(detail, houseParam);
+        if (wrapperResult != null) {
+            return wrapperResult;
+        }
+        this.houseDetailRepository.save(detail);
+        List<HousePictureEntity> pictures = generatePictures(houseParam, houseParam.getId());
+        this.housePictureRepository.saveAll(pictures);
+
+        if (houseParam.getCover() == null) {
+            houseParam.setCover(house.getCover());
+        }
+
+        this.modelMapper.map(houseParam, house);
+        house.setLastUpdateTime(new Date());
+        houseRepository.save(house);
+
+//        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
+//            this.searchService.index(house.getId());
+//        }
+
+        return ResultEntity.success();
     }
 
 }

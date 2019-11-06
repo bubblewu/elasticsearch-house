@@ -61,7 +61,7 @@ public class HouseController {
     @GetMapping("address/support/subway/line")
     @ResponseBody
     public ApiResponse getSupportSubwayLine(@RequestParam(name = "city_name") String cityEnName) {
-        List<SubwayEntity> subways = addressService.findAllSubwayByCity(cityEnName);
+        List<SubwayEntity> subways = addressService.findAllSubwayByCityEnName(cityEnName);
         if (subways.isEmpty()) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }

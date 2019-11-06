@@ -1,10 +1,12 @@
 package com.bubble.house.service.house;
 
+import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
+import com.bubble.house.entity.result.ResultEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,16 @@ public interface AddressService {
     MultiResultEntity<CityEntity> findAllCities();
 
     /**
+     * 根据英文简写获取具体区域的信息
+     *
+     * @param cityEnName  英文简写
+     * @param regionEnName  区域简写
+     * @return 城市信息
+     */
+    Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName);
+
+
+    /**
      * 根据城市英文简写获取该城市所有支持的区域信息
      *
      * @param cityEnName 城市英文简写
@@ -38,7 +50,7 @@ public interface AddressService {
      * @param cityEnName 城市英文简写
      * @return 地铁线路集合
      */
-    List<SubwayEntity> findAllSubwayByCity(String cityEnName);
+    List<SubwayEntity> findAllSubwayByCityEnName(String cityEnName);
 
     /**
      * 获取地铁线路所有的站点
@@ -49,13 +61,34 @@ public interface AddressService {
     List<SubwayStationEntity> findAllStationBySubway(Long subwayId);
 
     /**
-     * 根据英文简写获取具体区域的信息
-     *
-     * @param cityEnName  英文简写
-     * @param regionEnName  区域简写
-     * @return 城市信息
+     * 获取地铁线信息
      */
-    Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName);
+    ResultEntity<SubwayEntity> findSubway(Long subwayId);
 
+    /**
+     * 获取地铁站点信息
+     */
+    ResultEntity<SubwayStationEntity> findSubwayStation(Long stationId);
+
+    /**
+     * 根据城市英文简写获取城市详细信息
+     */
+    ResultEntity<CityEntity> findCity(String cityEnName);
+
+    /**
+     * 根据城市以及具体地位获取百度地图的经纬度
+     */
+    ResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address);
+
+    /**
+     * 上传百度LBS数据
+     */
+    ResultEntity lbsUpload(BaiDuMapEntity location, String title, String address,
+                            long houseId, int price, int area);
+
+    /**
+     * 移除百度LBS数据
+     */
+    ResultEntity removeLbs(Long houseId);
 
 }

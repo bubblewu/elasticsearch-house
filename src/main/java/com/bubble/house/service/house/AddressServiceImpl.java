@@ -1,10 +1,12 @@
 package com.bubble.house.service.house;
 
+import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
+import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.CityRepository;
 import com.bubble.house.repository.SubwayRepository;
 import com.bubble.house.repository.SubwayStationRepository;
@@ -38,6 +40,18 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    public Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName) {
+        Map<CityLevel, CityEntity> result = new HashMap<>();
+
+        CityEntity city = this.cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
+        CityEntity region = this.cityRepository.findByEnNameAndBelongTo(regionEnName, city.getEnName());
+
+        result.put(CityLevel.CITY, city);
+        result.put(CityLevel.REGION, region);
+        return result;
+    }
+
+    @Override
     public MultiResultEntity<CityEntity> findAllRegionsByCityEnName(String cityEnName) {
         if (null == cityEnName) {
             return new MultiResultEntity<>(0, null);
@@ -47,7 +61,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public List<SubwayEntity> findAllSubwayByCity(String cityEnName) {
+    public List<SubwayEntity> findAllSubwayByCityEnName(String cityEnName) {
         if (null == cityEnName) {
             return new ArrayList<>();
         }
@@ -62,15 +76,45 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName) {
-        Map<CityLevel, CityEntity> result = new HashMap<>();
+    public ResultEntity<SubwayEntity> findSubway(Long subwayId) {
+        if (subwayId == null) {
+            return ResultEntity.notFound();
+        }
+        Optional<SubwayEntity> subwayOp = subwayRepository.findById(subwayId);
+        return subwayOp.map(ResultEntity::of).orElseGet(ResultEntity::notFound);
+    }
 
-        CityEntity city = this.cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
-        CityEntity region = this.cityRepository.findByEnNameAndBelongTo(regionEnName, city.getEnName());
+    @Override
+    public ResultEntity<SubwayStationEntity> findSubwayStation(Long stationId) {
+        if (null == stationId) {
+            return ResultEntity.notFound();
+        }
+        Optional<SubwayStationEntity> subwayStationOp = subwayStationRepository.findById(stationId);
+        return subwayStationOp.map(ResultEntity::of).orElseGet(ResultEntity::notFound);
+    }
 
-        result.put(CityLevel.CITY, city);
-        result.put(CityLevel.REGION, region);
-        return result;
+    @Override
+    public ResultEntity<CityEntity> findCity(String cityEnName) {
+        if (null == cityEnName) {
+            return ResultEntity.notFound();
+        }
+        CityEntity city = cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
+        return city == null ? ResultEntity.notFound() : ResultEntity.of(city);
+    }
+
+    @Override
+    public ResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address) {
+        return null;
+    }
+
+    @Override
+    public ResultEntity lbsUpload(BaiDuMapEntity location, String title, String address, long houseId, int price, int area) {
+        return null;
+    }
+
+    @Override
+    public ResultEntity removeLbs(Long houseId) {
+        return null;
     }
 
 }
