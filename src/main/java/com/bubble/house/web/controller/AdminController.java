@@ -198,7 +198,7 @@ public class AdminController {
     }
 
     /**
-     * 编辑接口
+     * House信息保存接口
      */
     @PostMapping("admin/house/edit")
     @ResponseBody

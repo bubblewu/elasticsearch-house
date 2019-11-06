@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.Predicate;
@@ -247,6 +248,7 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
+    @Transactional
     public ResultEntity update(HouseParam houseParam) {
         Optional<HouseEntity> houseOp = this.houseRepository.findById(houseParam.getId());
         if (!houseOp.isPresent()) {
