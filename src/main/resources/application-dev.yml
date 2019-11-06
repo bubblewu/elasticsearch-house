@@ -17,7 +17,7 @@ spring:
       ddl-auto: validate  # 每次加载hibernate时，验证创建数据库表结构，只会和数据库中的表进行比较，不会创建新表，但是会插入新值。
     open-in-view: false
   session:
-    store-type: none  # session会话存储类型
+    store-type: redis  # session会话存储类型
   # Redis配置
   redis:
     host: 127.0.0.1
