@@ -11,6 +11,8 @@ import com.bubble.house.entity.param.PhotoParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.*;
+import com.qiniu.common.QiniuException;
+import com.qiniu.http.Response;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -53,11 +55,12 @@ public class HouseServiceImpl implements HouseService {
     private final HouseTagRepository houseTagRepository;
     private final HousePictureRepository housePictureRepository;
     private final HouseSubscribeRepository subscribeRepository;
+    private final QiNiuService qiNiuService;
 
     public HouseServiceImpl(SubwayRepository subwayRepository, SubwayStationRepository subwayStationRepository,
                             HouseRepository houseRepository, HouseDetailRepository houseDetailRepository,
                             HouseTagRepository houseTagRepository, HousePictureRepository housePictureRepository,
-                            HouseSubscribeRepository subscribeRepository) {
+                            HouseSubscribeRepository subscribeRepository, QiNiuService qiNiuService) {
         this.subwayRepository = subwayRepository;
         this.subwayStationRepository = subwayStationRepository;
         this.houseRepository = houseRepository;
@@ -65,6 +68,7 @@ public class HouseServiceImpl implements HouseService {
         this.houseTagRepository = houseTagRepository;
         this.housePictureRepository = housePictureRepository;
         this.subscribeRepository = subscribeRepository;
+        this.qiNiuService = qiNiuService;
     }
 
     @Override
@@ -279,6 +283,38 @@ public class HouseServiceImpl implements HouseService {
 //            this.searchService.index(house.getId());
 //        }
 
+        return ResultEntity.success();
+    }
+
+    @Override
+    public ResultEntity removePhoto(Long id) {
+        Optional<HousePictureEntity> pictureOp = this.housePictureRepository.findById(id);
+        if (pictureOp.isPresent()) {
+            try {
+                Response response = this.qiNiuService.delete(pictureOp.get().getPath());
+                if (response.isOK()) {
+                    this.housePictureRepository.deleteById(id);
+                    return ResultEntity.success();
+                } else {
+                    return new ResultEntity(false, response.error);
+                }
+            } catch (QiniuException e) {
+                e.printStackTrace();
+                return new ResultEntity(false, e.getMessage());
+            }
+        } else {
+            return ResultEntity.notFound();
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResultEntity updateCover(Long coverId, Long targetId) {
+        Optional<HousePictureEntity> coverOp = this.housePictureRepository.findById(coverId);
+        if (!coverOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+        this.houseRepository.updateCover(targetId, coverOp.get().getPath());
         return ResultEntity.success();
     }
 

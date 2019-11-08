@@ -221,4 +221,34 @@ public class AdminController {
         return response;
     }
 
+    /**
+     * 移除图片接口
+     */
+    @DeleteMapping("admin/house/photo")
+    @ResponseBody
+    public ApiResponse removeHousePhoto(@RequestParam(value = "id") Long id) {
+        ResultEntity result = this.houseService.removePhoto(id);
+        if (result.isSuccess()) {
+            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
+        } else {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), result.getMessage());
+        }
+    }
+
+    /**
+     * 修改封面接口
+     */
+    @PostMapping("admin/house/cover")
+    @ResponseBody
+    public ApiResponse updateCover(@RequestParam(value = "cover_id") Long coverId,
+                                   @RequestParam(value = "target_id") Long targetId) {
+        ResultEntity result = this.houseService.updateCover(coverId, targetId);
+
+        if (result.isSuccess()) {
+            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
+        } else {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), result.getMessage());
+        }
+    }
+
 }

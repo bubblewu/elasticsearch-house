@@ -33,4 +33,14 @@ public interface HouseService {
      */
     ResultEntity update(HouseParam houseParam);
 
+    /**
+     * 移除图片
+     */
+    ResultEntity removePhoto(Long id);
+
+    /**
+     * 更新封面
+     */
+    ResultEntity updateCover(Long coverId, Long targetId);
+
 }
