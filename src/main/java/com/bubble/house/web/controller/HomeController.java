@@ -47,5 +47,9 @@ public class HomeController {
         return "logout";  // 登出页面
     }
 
+    @GetMapping("/show")
+    public String show() {
+        return "show";
+    }
 
 }
