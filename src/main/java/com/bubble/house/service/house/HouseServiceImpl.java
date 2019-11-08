@@ -318,4 +318,67 @@ public class HouseServiceImpl implements HouseService {
         return ResultEntity.success();
     }
 
+    @Override
+    @Transactional
+    public ResultEntity addTag(Long houseId, String tag) {
+        Optional<HouseEntity> houseOp = this.houseRepository.findById(houseId);
+        if (!houseOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+
+        HouseTagEntity houseTag = this.houseTagRepository.findByNameAndHouseId(tag, houseId);
+        if (houseTag != null) {
+            return new ResultEntity(false, "标签已存在");
+        }
+        this.houseTagRepository.save(new HouseTagEntity(houseId, tag));
+        return ResultEntity.success();
+    }
+
+    @Override
+    @Transactional
+    public ResultEntity removeTag(Long houseId, String tag) {
+        Optional<HouseEntity> houseOp = this.houseRepository.findById(houseId);
+        if (!houseOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+
+        HouseTagEntity houseTag = this.houseTagRepository.findByNameAndHouseId(tag, houseId);
+        if (houseTag == null) {
+            return new ResultEntity(false, "标签不存在");
+        }
+
+        this.houseTagRepository.deleteById(houseTag.getId());
+        return ResultEntity.success();
+    }
+
+
+    @Override
+    @Transactional
+    public ResultEntity updateStatus(Long id, int status) {
+        Optional<HouseEntity> houseOp = this.houseRepository.findById(id);
+        if (!houseOp.isPresent()) {
+            return ResultEntity.notFound();
+        }
+        HouseEntity house = houseOp.get();
+        if (house.getStatus() == status) {
+            return new ResultEntity(false, "状态没有发生变化");
+        }
+        if (house.getStatus() == HouseStatus.RENTED.getValue()) {
+            return new ResultEntity(false, "已出租的房源不允许修改状态");
+        }
+        if (house.getStatus() == HouseStatus.DELETED.getValue()) {
+            return new ResultEntity(false, "已删除的资源不允许操作");
+        }
+        this.houseRepository.updateStatus(id, status);
+
+//        // 上架更新索引 其他情况都要删除索引
+//        if (status == HouseStatus.PASSES.getValue()) {
+//            searchService.index(id);
+//        } else {
+//            searchService.remove(id);
+//        }
+        return ResultEntity.success();
+    }
+
+
 }

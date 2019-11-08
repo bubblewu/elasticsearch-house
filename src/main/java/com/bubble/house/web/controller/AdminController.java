@@ -7,10 +7,7 @@ import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.QiNiuEntity;
 import com.bubble.house.entity.dto.HouseDTO;
 import com.bubble.house.entity.dto.HouseDetailDTO;
-import com.bubble.house.entity.house.CityEntity;
-import com.bubble.house.entity.house.CityLevel;
-import com.bubble.house.entity.house.SubwayEntity;
-import com.bubble.house.entity.house.SubwayStationEntity;
+import com.bubble.house.entity.house.*;
 import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.result.MultiResultEntity;
@@ -18,6 +15,7 @@ import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
+import com.google.common.base.Strings;
 import com.qiniu.http.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -250,5 +248,79 @@ public class AdminController {
             return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), result.getMessage());
         }
     }
+
+
+    /**
+     * 增加标签接口
+     */
+    @PostMapping("admin/house/tag")
+    @ResponseBody
+    public ApiResponse addHouseTag(@RequestParam(value = "house_id") Long houseId,
+                                   @RequestParam(value = "tag") String tag) {
+        if (houseId < 1 || Strings.isNullOrEmpty(tag)) {
+            return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
+        }
+        ResultEntity result = this.houseService.addTag(houseId, tag);
+        if (result.isSuccess()) {
+            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
+        } else {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), result.getMessage());
+        }
+    }
+
+    /**
+     * 移除标签接口
+     */
+    @DeleteMapping("admin/house/tag")
+    @ResponseBody
+    public ApiResponse removeHouseTag(@RequestParam(value = "house_id") Long houseId,
+                                      @RequestParam(value = "tag") String tag) {
+        if (houseId < 1 || Strings.isNullOrEmpty(tag)) {
+            return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
+        }
+
+        ResultEntity result = this.houseService.removeTag(houseId, tag);
+        if (result.isSuccess()) {
+            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
+        } else {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), result.getMessage());
+        }
+    }
+
+
+    /**
+     * 审核接口
+     */
+    @PutMapping("admin/house/operate/{id}/{operation}")
+    @ResponseBody
+    public ApiResponse operateHouse(@PathVariable(value = "id") Long id,
+                                    @PathVariable(value = "operation") int operation) {
+        if (id <= 0) {
+            return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
+        }
+        ResultEntity result;
+        switch (operation) {
+            case HouseOperation.PASS:
+                result = this.houseService.updateStatus(id, HouseStatus.PASSES.getValue());
+                break;
+            case HouseOperation.PULL_OUT:
+                result = this.houseService.updateStatus(id, HouseStatus.NOT_AUDITED.getValue());
+                break;
+            case HouseOperation.DELETE:
+                result = this.houseService.updateStatus(id, HouseStatus.DELETED.getValue());
+                break;
+            case HouseOperation.RENT:
+                result = this.houseService.updateStatus(id, HouseStatus.RENTED.getValue());
+                break;
+            default:
+                return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
+        }
+        if (result.isSuccess()) {
+            return ApiResponse.ofSuccess(null);
+        }
+        return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(),
+                result.getMessage());
+    }
+
 
 }

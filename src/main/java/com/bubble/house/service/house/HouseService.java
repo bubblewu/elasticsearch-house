@@ -43,4 +43,19 @@ public interface HouseService {
      */
     ResultEntity updateCover(Long coverId, Long targetId);
 
+    /**
+     * 新增标签
+     */
+    ResultEntity addTag(Long houseId, String tag);
+
+    /**
+     * 移除标签
+     */
+    ResultEntity removeTag(Long houseId, String tag);
+
+    /**
+     * 更新房源状态
+     */
+    ResultEntity updateStatus(Long id, int status);
+
 }
