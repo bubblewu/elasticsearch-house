@@ -8,9 +8,11 @@ import com.bubble.house.entity.house.*;
 import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.param.PhotoParam;
+import com.bubble.house.entity.param.RentSearchParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.*;
+import com.google.common.collect.Maps;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import org.modelmapper.ModelMapper;
@@ -24,11 +26,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import javax.persistence.criteria.Root;
+import java.util.*;
 
 /**
  * House相关服务接口实现
@@ -380,5 +382,44 @@ public class HouseServiceImpl implements HouseService {
         return ResultEntity.success();
     }
 
+
+    @Override
+    public MultiResultEntity<HouseDTO> query(RentSearchParam rentSearch) {
+//        Sort sort = Sort.by(Sort.Direction.DESC, "lastUpdateTime");
+        Sort sort;
+        String sortField;
+        if (rentSearch.getOrderBy().isEmpty()) {
+            sortField = "lastUpdateTime";
+        } else {
+            sortField = rentSearch.getOrderBy();
+        }
+        if ("asc".equals(rentSearch.getOrderDirection())) { // 升序
+            sort = Sort.by(Sort.Direction.ASC, sortField);
+        } else {
+            sort = Sort.by(Sort.Direction.DESC, sortField);
+        }
+        int page = rentSearch.getStart() / rentSearch.getSize();
+        Pageable pageable = PageRequest.of(page, rentSearch.getSize(), sort);
+        // 条件
+        Specification specification = (Specification) (root, criteriaQuery, criteriaBuilder) -> {
+            Predicate predicate = criteriaBuilder.equal(root.get("status"), HouseStatus.PASSES.getValue());
+            predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("cityEnName"), rentSearch.getCityEnName()));
+            return predicate;
+        };
+        Page<HouseEntity> houses = this.houseRepository.findAll(specification, pageable);
+
+        List<HouseDTO> houseDTOS = new ArrayList<>();
+        houses.forEach(house -> {
+            HouseDTO houseDTO = this.modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(this.cdnPrefix + house.getCover());
+
+            HouseDetailEntity houseDetailEntity = this.houseDetailRepository.findByHouseId(house.getId());
+            HouseDetailDTO houseDetailDTO = this.modelMapper.map(houseDetailEntity, HouseDetailDTO.class);
+            houseDTO.setHouseDetail(houseDetailDTO);
+
+            houseDTOS.add(houseDTO);
+        });
+        return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
+    }
 
 }
