@@ -1,5 +1,6 @@
 package com.bubble.house.service.house;
 
+import com.bubble.house.base.HouseSort;
 import com.bubble.house.base.ToolKits;
 import com.bubble.house.entity.dto.HouseDTO;
 import com.bubble.house.entity.dto.HouseDetailDTO;
@@ -12,7 +13,6 @@ import com.bubble.house.entity.param.RentSearchParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.*;
-import com.google.common.collect.Maps;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import org.modelmapper.ModelMapper;
@@ -26,11 +26,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * House相关服务接口实现
@@ -386,18 +387,19 @@ public class HouseServiceImpl implements HouseService {
     @Override
     public MultiResultEntity<HouseDTO> query(RentSearchParam rentSearch) {
 //        Sort sort = Sort.by(Sort.Direction.DESC, "lastUpdateTime");
-        Sort sort;
-        String sortField;
-        if (rentSearch.getOrderBy().isEmpty()) {
-            sortField = "lastUpdateTime";
-        } else {
-            sortField = rentSearch.getOrderBy();
-        }
-        if ("asc".equals(rentSearch.getOrderDirection())) { // 升序
-            sort = Sort.by(Sort.Direction.ASC, sortField);
-        } else {
-            sort = Sort.by(Sort.Direction.DESC, sortField);
-        }
+//        Sort sort;
+//        String sortField;
+//        if (rentSearch.getOrderBy().isEmpty()) {
+//            sortField = "lastUpdateTime";
+//        } else {
+//            sortField = rentSearch.getOrderBy();
+//        }
+//        if ("asc".equals(rentSearch.getOrderDirection())) { // 升序
+//            sort = Sort.by(Sort.Direction.ASC, sortField);
+//        } else {
+//            sort = Sort.by(Sort.Direction.DESC, sortField);
+//        }
+        Sort sort = HouseSort.generateSort(rentSearch.getOrderBy(), rentSearch.getOrderDirection());
         int page = rentSearch.getStart() / rentSearch.getSize();
         Pageable pageable = PageRequest.of(page, rentSearch.getSize(), sort);
         // 条件
@@ -412,11 +414,16 @@ public class HouseServiceImpl implements HouseService {
         houses.forEach(house -> {
             HouseDTO houseDTO = this.modelMapper.map(house, HouseDTO.class);
             houseDTO.setCover(this.cdnPrefix + house.getCover());
-
+            // house详情信息
             HouseDetailEntity houseDetailEntity = this.houseDetailRepository.findByHouseId(house.getId());
             HouseDetailDTO houseDetailDTO = this.modelMapper.map(houseDetailEntity, HouseDetailDTO.class);
             houseDTO.setHouseDetail(houseDetailDTO);
-
+            // tags信息
+            List<String> tags = this.houseTagRepository.findAllByHouseId(house.getId()).stream().map(HouseTagEntity::getName).collect(Collectors.toList());
+            houseDTO.setTags(tags);
+            // pictures
+            List<HousePictureDTO> pictures = this.housePictureRepository.findAllByHouseId(house.getId()).stream().map(hp -> this.modelMapper.map(hp, HousePictureDTO.class)).collect(Collectors.toList());
+            houseDTO.setPictures(pictures);
             houseDTOS.add(houseDTO);
         });
         return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
