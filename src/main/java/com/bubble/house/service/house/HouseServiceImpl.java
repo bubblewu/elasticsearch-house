@@ -13,6 +13,7 @@ import com.bubble.house.entity.param.RentSearchParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
 import com.bubble.house.repository.*;
+import com.google.common.collect.Lists;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import org.modelmapper.ModelMapper;
@@ -27,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -410,23 +408,66 @@ public class HouseServiceImpl implements HouseService {
         };
         Page<HouseEntity> houses = this.houseRepository.findAll(specification, pageable);
 
-        List<HouseDTO> houseDTOS = new ArrayList<>();
-        houses.forEach(house -> {
-            HouseDTO houseDTO = this.modelMapper.map(house, HouseDTO.class);
-            houseDTO.setCover(this.cdnPrefix + house.getCover());
-            // house详情信息
-            HouseDetailEntity houseDetailEntity = this.houseDetailRepository.findByHouseId(house.getId());
-            HouseDetailDTO houseDetailDTO = this.modelMapper.map(houseDetailEntity, HouseDetailDTO.class);
-            houseDTO.setHouseDetail(houseDetailDTO);
-            // tags信息
-            List<String> tags = this.houseTagRepository.findAllByHouseId(house.getId()).stream().map(HouseTagEntity::getName).collect(Collectors.toList());
-            houseDTO.setTags(tags);
-            // pictures
-            List<HousePictureDTO> pictures = this.housePictureRepository.findAllByHouseId(house.getId()).stream().map(hp -> this.modelMapper.map(hp, HousePictureDTO.class)).collect(Collectors.toList());
-            houseDTO.setPictures(pictures);
-            houseDTOS.add(houseDTO);
-        });
+//        List<HouseDTO> houseDTOS = new ArrayList<>();
+//        houses.forEach(house -> {
+//            HouseDTO houseDTO = this.modelMapper.map(house, HouseDTO.class);
+//            houseDTO.setCover(this.cdnPrefix + house.getCover());
+//            // house详情信息
+//            HouseDetailEntity houseDetailEntity = this.houseDetailRepository.findByHouseId(house.getId());
+//            HouseDetailDTO houseDetailDTO = this.modelMapper.map(houseDetailEntity, HouseDetailDTO.class);
+//            houseDTO.setHouseDetail(houseDetailDTO);
+//            // tags信息
+//            List<String> tags = this.houseTagRepository.findAllByHouseId(house.getId()).stream().map(HouseTagEntity::getName).collect(Collectors.toList());
+//            houseDTO.setTags(tags);
+//            // pictures
+//            List<HousePictureDTO> pictures = this.housePictureRepository.findAllByHouseId(house.getId()).stream().map(hp -> this.modelMapper.map(hp, HousePictureDTO.class)).collect(Collectors.toList());
+//            houseDTO.setPictures(pictures);
+//            houseDTOS.add(houseDTO);
+//        });
+
+        List<Long> houseIds = Lists.newArrayList();
+        houses.forEach(h -> houseIds.add(h.getId()));
+        List<HouseDTO> houseDTOS = wrapperHouseResult(houseIds);
         return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
     }
+
+    /**
+     * 渲染完整的HouseDTO信息
+     */
+    private List<HouseDTO> wrapperHouseResult(List<Long> houseIds) {
+        List<HouseDTO> result = new ArrayList<>();
+        Map<Long, HouseDTO> idToHouseMap = new HashMap<>();
+        Iterable<HouseEntity> houses = houseRepository.findAllById(houseIds);
+        houses.forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(this.cdnPrefix + house.getCover());
+            idToHouseMap.put(house.getId(), houseDTO);
+        });
+
+        wrapperHouseList(houseIds, idToHouseMap);
+        // 矫正顺序
+        for (Long houseId : houseIds) {
+            result.add(idToHouseMap.get(houseId));
+        }
+        return result;
+    }
+
+    /**
+     * 渲染详细信息 及 标签
+     */
+    private void wrapperHouseList(List<Long> houseIds, Map<Long, HouseDTO> idToHouseMap) {
+        List<HouseDetailEntity> details = houseDetailRepository.findAllByHouseIdIn(houseIds);
+        details.forEach(houseDetail -> {
+            HouseDTO houseDTO = idToHouseMap.get(houseDetail.getHouseId());
+            HouseDetailDTO detailDTO = modelMapper.map(houseDetail, HouseDetailDTO.class);
+            houseDTO.setHouseDetail(detailDTO);
+        });
+        List<HouseTagEntity> houseTags = houseTagRepository.findAllByHouseIdIn(houseIds);
+        houseTags.forEach(houseTag -> {
+            HouseDTO house = idToHouseMap.get(houseTag.getHouseId());
+            house.getTags().add(houseTag.getName());
+        });
+    }
+
 
 }
