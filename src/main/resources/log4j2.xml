@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="ERROR" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_HOME">./logs</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT"
+                             onMismatch="DENY"/>
+            <!--<PatternLayout-->
+            <!--pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36}:%L [%M] - %msg%n"/>-->
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{FATAL=Bright Red, ERROR=Bright Magenta, WARN=Bright Yellow, INFO=Bright Green, DEBUG=Bright Cyan, TRACE=Bright White} %logger{36}:%L [%M] - %highlight{%msg%n}"/>
+        </Console>
+
+        <RollingFile name="RollingFileInfo" fileName="${LOG_HOME}/es-house.log"
+                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/es-house-%d{yyyy-MM-dd}.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT"
+                             onMismatch="DENY"/>
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{FATAL=Bright Red, ERROR=Bright Magenta, WARN=Bright Yellow, INFO=Bright Green, DEBUG=Bright Cyan, TRACE=Bright White} %logger{36}:%L [%M] - %highlight{%msg%n}"/>
+            <Policies>
+                <!-- log4j2的按天分日志文件 : es-house-%d{yyyy-MM-dd}.log -->
+                <TimeBasedTriggeringPolicy interval="1"
+                                           modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingFile>
+
+        <RollingFile name="RollingFileError"
+                     fileName="${LOG_HOME}/es-house-error.log"
+                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/es-house-error-%d{yyyy-MM-dd}.log">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT"
+                             onMismatch="DENY"/>
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{FATAL=Bright Red, ERROR=Bright Magenta, WARN=Bright Yellow, INFO=Bright Green, DEBUG=Bright Cyan, TRACE=Bright White} %logger{36}:%L [%M] - %highlight{%msg%n}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"
+                                           modulate="true"/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="100"/>
+        </RollingFile>
+
+        <!--        <RollingFile name="RollingFileJetCache"-->
+        <!--                     fileName="${LOG_HOME}/rec-cache-stats.log"-->
+        <!--                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/rec-cache-stats-%d{yyyy-MM-dd}.log">-->
+        <!--            <Policies>-->
+        <!--                <TimeBasedTriggeringPolicy interval="1"-->
+        <!--                                           modulate="true"/>-->
+        <!--            </Policies>-->
+        <!--            <DefaultRolloverStrategy max="100"/>-->
+        <!--        </RollingFile>-->
+
+        <!--        <RollingFile name="KafkaProducer" fileName="${LOG_HOME}/kafka-producer.log"-->
+        <!--                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/kafka-producer-%d{yyyy-MM-dd}.log">-->
+        <!--            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>-->
+        <!--            <PatternLayout-->
+        <!--                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{FATAL=Bright Red, ERROR=Bright Magenta, WARN=Bright Yellow, INFO=Bright Green, DEBUG=Bright Cyan, TRACE=Bright White} %logger{36}:%L [%M] - %highlight{%msg%n}"/>-->
+        <!--            <Policies>-->
+        <!--                <TimeBasedTriggeringPolicy interval="1"-->
+        <!--                                           modulate="true"/>-->
+        <!--                <SizeBasedTriggeringPolicy size="100 MB"/>-->
+        <!--            </Policies>-->
+        <!--            <DefaultRolloverStrategy max="100"/>-->
+        <!--        </RollingFile>-->
+
+    </Appenders>
+
+    <Loggers>
+        <!--        <logger name="com.huoli.product.recommend.controller.HotelInfoExtractController" level="INFO" additivity="false">-->
+        <!--            <appender-ref ref="HotelController"/>-->
+        <!--        </logger>-->
+        <!--        <logger name="com.alicp.jetcache" level="INFO" additivity="false">-->
+        <!--            <appender-ref ref="RollingFileJetCache"/>-->
+        <!--        </logger>-->
+
+        <!--        <logger name="org.mongodb" level="ERROR"/>-->
+
+        <!--        <root level="all">-->
+        <!--            <appenderRef ref="Console"/>-->
+        <!--            <appenderRef ref="RollingFileInfo"/>-->
+        <!--            <appenderRef ref="RollingFileError"/>-->
+        <!--        </root>-->
+        <!--        异步日志-->
+
+        <!--        <logger name="com.alicp.jetcache" level="INFO" additivity="false">-->
+        <!--            <appender-ref ref="RollingFileJetCache"/>-->
+        <!--        </logger>-->
+        <!--        <AsyncLogger name="com.bubble.product.recommend.common.kafka.KafkaProducer" level="INFO"-->
+        <!--                     additivity="false" includeLocation="true">-->
+        <!--            <appender-ref ref="KafkaProducer"/>-->
+        <!--        </AsyncLogger>-->
+
+        <!--        <logger name="org.mongodb" level="ERROR"/>-->
+
+        <asyncRoot level="all" includeLocation="true">
+            <appenderRef ref="Console"/>
+            <appenderRef ref="RollingFileInfo"/>
+            <appenderRef ref="RollingFileError"/>
+        </asyncRoot>
+    </Loggers>
+</Configuration>

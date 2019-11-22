@@ -17,6 +17,8 @@ import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
 import com.google.common.base.Strings;
 import com.qiniu.http.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,6 +41,7 @@ import java.util.Map;
  **/
 @Controller
 public class AdminController {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
     @Value("${spring.http.multipart.location}")
     private String imageLocation;
@@ -58,7 +61,9 @@ public class AdminController {
      */
     @GetMapping("/admin/center")
     public String adminCenterPage() {
-        return "admin/center";
+        String page = "admin/center";
+        LOGGER.debug("进入后台管理中心页面：[{}]", page);
+        return page;
     }
 
     /**
@@ -66,7 +71,9 @@ public class AdminController {
      */
     @GetMapping("/admin/welcome")
     public String welcomePage() {
-        return "admin/welcome";
+        String page = "admin/welcome";
+        LOGGER.debug("进入欢迎页面：[{}]", page);
+        return page;
     }
 
     /**
@@ -74,7 +81,9 @@ public class AdminController {
      */
     @GetMapping("/admin/login")
     public String adminLoginPage() {
-        return "admin/login";
+        String page = "admin/login";
+        LOGGER.debug("进入管理员登录页面：[{}]", page);
+        return page;
     }
 
     /**
@@ -82,7 +91,9 @@ public class AdminController {
      */
     @GetMapping("admin/house/list")
     public String houseListPage() {
-        return "admin/house-list";
+        String page = "admin/house-list";
+        LOGGER.debug("进入房源列表页面：[{}]", page);
+        return page;
     }
 
     /**
@@ -91,6 +102,7 @@ public class AdminController {
     @PostMapping("admin/houses")
     @ResponseBody
     public ApiDataTableResponse houses(@ModelAttribute DatatableSearchParam searchBody) {
+        LOGGER.debug("进入房源信息展示接口：[admin/houses]");
         MultiResultEntity<HouseDTO> result = houseService.adminQuery(searchBody);
         ApiDataTableResponse response = new ApiDataTableResponse(ApiStatus.SUCCESS);
         response.setData(result.getResult());
@@ -105,6 +117,7 @@ public class AdminController {
      */
     @GetMapping("admin/add/house")
     public String addHousePage() {
+        LOGGER.debug("进入新增房源页面：[admin/house-add]");
         return "admin/house-add";
     }
 
@@ -114,6 +127,7 @@ public class AdminController {
     @PostMapping("admin/add/house")
     @ResponseBody
     public ApiResponse addHouse(@Valid @ModelAttribute("form-house-add") HouseParam houseParam, BindingResult bindingResult) {
+        LOGGER.debug("进入新增房源接口：[admin/add/house]");
         if (bindingResult.hasErrors()) {
             return new ApiResponse(HttpStatus.BAD_REQUEST.value(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
         }
@@ -134,40 +148,11 @@ public class AdminController {
     }
 
     /**
-     * 上传图片接口：本地或七牛云
-     */
-    @PostMapping(value = "admin/upload/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseBody
-    public ApiResponse uploadPhoto(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
-        }
-        try {
-//            // 上传到本地
-//            String fileName = file.getOriginalFilename();
-//            File target = new File(imageLocation + fileName);
-//            file.transferTo(target);
-//            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
-
-            // 上传到七牛云服务器
-            InputStream inputStream = file.getInputStream();
-            Response response = qiNiuService.uploadFile(inputStream);
-            if (response.isOK()) {
-                QiNiuEntity qiNiuEntity = JSONObject.parseObject(response.bodyString(), QiNiuEntity.class);
-                return ApiResponse.ofSuccess(qiNiuEntity);
-            } else {
-                return ApiResponse.ofMessage(response.statusCode, response.getInfo());
-            }
-        } catch (IOException e) {
-            return ApiResponse.ofStatus(ApiStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
      * 房源信息编辑页
      */
     @GetMapping("admin/house/edit")
     public String houseEditPage(@RequestParam(value = "id") Long id, Model model) {
+        LOGGER.debug("进入房源信息编辑页面：[admin/house/edit]");
         if (id == null || id < 1) {
             return "404";
         }
@@ -196,11 +181,12 @@ public class AdminController {
     }
 
     /**
-     * House信息保存接口
+     * House信息编辑后保存接口
      */
     @PostMapping("admin/house/edit")
     @ResponseBody
     public ApiResponse saveHouse(@Valid @ModelAttribute("form-house-edit") HouseParam houseParam, BindingResult bindingResult) {
+        LOGGER.debug("进入房源信息编辑后保存接口：[admin/house/edit]");
         if (bindingResult.hasErrors()) {
             return new ApiResponse(HttpStatus.BAD_REQUEST.value(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
         }
@@ -220,11 +206,44 @@ public class AdminController {
     }
 
     /**
+     * 上传图片接口：本地或七牛云
+     */
+    @PostMapping(value = "admin/upload/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
+    public ApiResponse uploadPhoto(@RequestParam("file") MultipartFile file) {
+        LOGGER.debug("进入图片上传接口：[admin/upload/photo]");
+        if (file.isEmpty()) {
+            return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
+        }
+        try {
+//            // 上传到本地
+//            String fileName = file.getOriginalFilename();
+//            File target = new File(imageLocation + fileName);
+//            file.transferTo(target);
+//            return ApiResponse.ofStatus(ApiStatus.SUCCESS);
+
+            // 上传到七牛云服务器
+            InputStream inputStream = file.getInputStream();
+            Response response = qiNiuService.uploadFile(inputStream);
+            if (response.isOK()) {
+                QiNiuEntity qiNiuEntity = JSONObject.parseObject(response.bodyString(), QiNiuEntity.class);
+                return ApiResponse.ofSuccess(qiNiuEntity);
+            } else {
+                return ApiResponse.ofMessage(response.statusCode, response.getInfo());
+            }
+        } catch (IOException e) {
+            return ApiResponse.ofStatus(ApiStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
      * 移除图片接口
      */
     @DeleteMapping("admin/house/photo")
     @ResponseBody
     public ApiResponse removeHousePhoto(@RequestParam(value = "id") Long id) {
+        LOGGER.debug("进入图片删除接口：[admin/house/photo]");
+
         ResultEntity result = this.houseService.removePhoto(id);
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);
@@ -240,6 +259,8 @@ public class AdminController {
     @ResponseBody
     public ApiResponse updateCover(@RequestParam(value = "cover_id") Long coverId,
                                    @RequestParam(value = "target_id") Long targetId) {
+        LOGGER.debug("进入修改房源封面接口：[admin/house/cover]");
+
         ResultEntity result = this.houseService.updateCover(coverId, targetId);
 
         if (result.isSuccess()) {
@@ -249,7 +270,6 @@ public class AdminController {
         }
     }
 
-
     /**
      * 增加标签接口
      */
@@ -257,6 +277,8 @@ public class AdminController {
     @ResponseBody
     public ApiResponse addHouseTag(@RequestParam(value = "house_id") Long houseId,
                                    @RequestParam(value = "tag") String tag) {
+        LOGGER.debug("进入增加标签接口：[admin/house/tag]");
+
         if (houseId < 1 || Strings.isNullOrEmpty(tag)) {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
@@ -275,6 +297,8 @@ public class AdminController {
     @ResponseBody
     public ApiResponse removeHouseTag(@RequestParam(value = "house_id") Long houseId,
                                       @RequestParam(value = "tag") String tag) {
+        LOGGER.debug("进入删除标签接口：[admin/house/tag]");
+
         if (houseId < 1 || Strings.isNullOrEmpty(tag)) {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
@@ -295,6 +319,7 @@ public class AdminController {
     @ResponseBody
     public ApiResponse operateHouse(@PathVariable(value = "id") Long id,
                                     @PathVariable(value = "operation") int operation) {
+        LOGGER.debug("进入房源信息审核接口：[admin/house/operate/{}/{}]", id, operation);
         if (id <= 0) {
             return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
         }

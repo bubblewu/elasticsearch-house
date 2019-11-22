@@ -6,6 +6,8 @@ import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import java.io.InputStream;
  **/
 @Service
 public class QiNiuServiceImpl implements QiNiuService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(QiNiuServiceImpl.class);
 
     @Value("${qiniu.bucket}")
     private String bucket;
@@ -50,6 +53,7 @@ public class QiNiuServiceImpl implements QiNiuService {
             response = this.uploadManager.put(file, null, getUploadToken());
             retry++;
         }
+        LOGGER.info("七牛云上传图片 [{}]：{}", file.toString(), response.isOK());
         return response;
     }
 
@@ -61,6 +65,7 @@ public class QiNiuServiceImpl implements QiNiuService {
             response = this.uploadManager.put(inputStream, null, getUploadToken(), null, null);
             retry++;
         }
+        LOGGER.info("七牛云上传图片 [{}]：{}", inputStream.toString(), response.isOK());
         return response;
     }
 
@@ -71,6 +76,7 @@ public class QiNiuServiceImpl implements QiNiuService {
         while (response.needRetry() && retry++ < 3) {
             response = bucketManager.delete(bucket, key);
         }
+        LOGGER.info("七牛云删除图片 [{}], {}", key, response.isOK());
         return response;
     }
 

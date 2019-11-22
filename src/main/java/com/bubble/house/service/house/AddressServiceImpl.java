@@ -22,6 +22,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,8 @@ import java.util.*;
  **/
 @Service
 public class AddressServiceImpl implements AddressService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AddressServiceImpl.class);
+
 
     private final CityRepository cityRepository;
     private final SubwayRepository subwayRepository;
@@ -55,16 +59,16 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public MultiResultEntity<CityEntity> findAllCities() {
         List<CityEntity> cityEntityList = this.cityRepository.findAllByLevel(CityLevel.CITY.getValue());
+        LOGGER.debug("加载城市信息：{}", cityEntityList.size());
         return new MultiResultEntity<>(cityEntityList.size(), cityEntityList);
     }
 
     @Override
     public Map<CityLevel, CityEntity> findCityAndRegion(String cityEnName, String regionEnName) {
+        LOGGER.debug("开始加载[{}-{}]信息", cityEnName, regionEnName);
         Map<CityLevel, CityEntity> result = new HashMap<>();
-
         CityEntity city = this.cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
         CityEntity region = this.cityRepository.findByEnNameAndBelongTo(regionEnName, city.getEnName());
-
         result.put(CityLevel.CITY, city);
         result.put(CityLevel.REGION, region);
         return result;
@@ -72,6 +76,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public MultiResultEntity<CityEntity> findAllRegionsByCityEnName(String cityEnName) {
+        LOGGER.debug("开始加载城市[{}]下的县区信息", cityEnName);
         if (null == cityEnName) {
             return new MultiResultEntity<>(0, null);
         }
@@ -81,6 +86,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<SubwayEntity> findAllSubwayByCityEnName(String cityEnName) {
+        LOGGER.debug("开始加载城市[{}]下的地铁信息", cityEnName);
         if (null == cityEnName) {
             return new ArrayList<>();
         }
@@ -90,12 +96,14 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<SubwayStationEntity> findAllStationBySubway(Long subwayId) {
+        LOGGER.debug("开始加载地铁[{}]的地铁站点信息", subwayId);
         List<SubwayStationEntity> stations = this.subwayStationRepository.findAllBySubwayId(subwayId);
         return Optional.of(stations).orElse(new ArrayList<>());
     }
 
     @Override
     public ResultEntity<SubwayEntity> findSubway(Long subwayId) {
+        LOGGER.debug("开始加载地铁[{}]的地铁线路信息", subwayId);
         if (subwayId == null) {
             return ResultEntity.notFound();
         }
@@ -105,6 +113,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public ResultEntity<SubwayStationEntity> findSubwayStation(Long stationId) {
+        LOGGER.debug("开始加载地铁站[{}]的信息", stationId);
         if (null == stationId) {
             return ResultEntity.notFound();
         }
@@ -114,6 +123,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public ResultEntity<CityEntity> findCity(String cityEnName) {
+        LOGGER.debug("开始加载城市[{}]的信息", cityEnName);
         if (null == cityEnName) {
             return ResultEntity.notFound();
         }
@@ -126,6 +136,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public ResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address) {
+        LOGGER.debug("开始获取[{}-{}]的地理编码信息", city, address);
         String encodeAddress;
         String encodeCity;
 
@@ -133,8 +144,8 @@ public class AddressServiceImpl implements AddressService {
             encodeAddress = URLEncoder.encode(address, "UTF-8");
             encodeCity = URLEncoder.encode(city, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            System.err.println("Error to encode house address");
-            return new ResultEntity<>(false, "Error to encode house address");
+            LOGGER.error("[{} - {}] Encode 失败", city, address);
+            return new ResultEntity<>(false, "Encode house address失败");
         }
         // 百度地理编码服务
         HttpClient httpClient = HttpClients.createDefault();
@@ -148,13 +159,15 @@ public class AddressServiceImpl implements AddressService {
         try {
             HttpResponse response = httpClient.execute(get);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                return new ResultEntity<>(false, "Can not get BaiDu map location");
+                LOGGER.error("[{} - {}] 获取百度坐标失败", city, address);
+                return new ResultEntity<>(false, "获取百度坐标信息失败");
             }
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             JsonNode jsonNode = objectMapper.readTree(result);
             int status = jsonNode.get("status").asInt();
             if (status != 0) {
-                return new ResultEntity<>(false, "Error to get map location for status: " + status);
+                LOGGER.error("[{} - {}] 获取百度坐标失败", city, address);
+                return new ResultEntity<>(false, "获取百度坐标信息失败, Status: " + status);
             } else {
                 BaiDuMapEntity location = new BaiDuMapEntity();
                 JsonNode jsonLocation = jsonNode.get("result").get("location");
@@ -163,8 +176,8 @@ public class AddressServiceImpl implements AddressService {
                 return ResultEntity.of(location);
             }
         } catch (IOException e) {
-            System.err.println("Error to fetch baidumap api");
-            return new ResultEntity<>(false, "Error to fetch baidumap api");
+            LOGGER.error("[{} - {}] 获取百度坐标异常", city, address);
+            return new ResultEntity<>(false, "获取百度坐标信息出现异常");
         }
     }
 
@@ -175,7 +188,7 @@ public class AddressServiceImpl implements AddressService {
     private static final String LBS_QUERY_API = "http://api.map.baidu.com/geodata/v3/poi/list?";
     private static final String LBS_UPDATE_API = "http://api.map.baidu.com/geodata/v3/poi/update";
     private static final String LBS_DELETE_API = "http://api.map.baidu.com/geodata/v3/poi/delete";
-    private final String GEO_TABLE_ID= "175730";
+    private final String GEO_TABLE_ID = "175730";
 
     @Override
     public ResultEntity lbsUpload(BaiDuMapEntity location, String title, String address, long houseId, int price, int area) {

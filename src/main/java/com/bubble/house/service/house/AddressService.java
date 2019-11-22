@@ -77,6 +77,7 @@ public interface AddressService {
 
     /**
      * 根据城市以及具体地位获取百度地图的经纬度
+     * （需请求百度地图API，建议加缓存、）
      */
     ResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address);
 
