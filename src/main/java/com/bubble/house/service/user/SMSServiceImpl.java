@@ -9,6 +9,8 @@ import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.bubble.house.entity.result.ResultEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,6 +27,8 @@ import java.util.concurrent.TimeUnit;
  **/
 @Service
 public class SMSServiceImpl implements SMSService, InitializingBean {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SMSServiceImpl.class);
+
     @Value("${aliyun.sms.access-key}")
     private String accessKey;
     @Value("${aliyun.sms.secret-key}")
@@ -51,6 +55,7 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
         String gapKey = "SMS::CODE::INTERVAL::" + telephone;
         String result = redisTemplate.opsForValue().get(gapKey);
         if (result != null) {
+            LOGGER.error("send sms [{}] 请求次数太频繁", telephone);
             return new ResultEntity<>(false, "请求次数太频繁");
         }
         String code = generateRandomSmsCode();
@@ -70,16 +75,17 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
             if ("OK".equals(response.getCode())) {
                 success = true;
             } else {
-                System.out.println("验证码发送失败！");
+                LOGGER.error("send sms [{}] 验证码发送失败", telephone);
             }
         } catch (ClientException e) {
-            e.printStackTrace();
+            LOGGER.error("send sms [{}] 异常", telephone);
         }
         if (success) {
             redisTemplate.opsForValue().set(gapKey, code, 60, TimeUnit.SECONDS);
             redisTemplate.opsForValue().set(SMS_CODE_CONTENT_PREFIX + telephone, code, 10, TimeUnit.MINUTES);
             return ResultEntity.of(code);
         } else {
+            LOGGER.error("send sms [{}] 服务忙，请稍后重试", telephone);
             return new ResultEntity<>(false, "服务忙，请稍后重试");
         }
     }

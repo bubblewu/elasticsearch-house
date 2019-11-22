@@ -12,6 +12,7 @@ import com.bubble.house.repository.SubwayRepository;
 import com.bubble.house.repository.SubwayStationRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -30,7 +31,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 地点相关服务接口实现
@@ -88,17 +92,17 @@ public class AddressServiceImpl implements AddressService {
     public List<SubwayEntity> findAllSubwayByCityEnName(String cityEnName) {
         LOGGER.debug("开始加载城市[{}]下的地铁信息", cityEnName);
         if (null == cityEnName) {
-            return new ArrayList<>();
+            return Lists.newArrayList();
         }
         List<SubwayEntity> regions = this.subwayRepository.findAllByCityEnName(cityEnName);
-        return Optional.of(regions).orElse(new ArrayList<>());
+        return Optional.of(regions).orElse(Lists.newArrayList());
     }
 
     @Override
     public List<SubwayStationEntity> findAllStationBySubway(Long subwayId) {
         LOGGER.debug("开始加载地铁[{}]的地铁站点信息", subwayId);
         List<SubwayStationEntity> stations = this.subwayStationRepository.findAllBySubwayId(subwayId);
-        return Optional.of(stations).orElse(new ArrayList<>());
+        return Optional.of(stations).orElse(Lists.newArrayList());
     }
 
     @Override
@@ -192,8 +196,9 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public ResultEntity lbsUpload(BaiDuMapEntity location, String title, String address, long houseId, int price, int area) {
+        LOGGER.debug("开始上传LBS数据到百度存储, House:{}", houseId);
         HttpClient httpClient = HttpClients.createDefault();
-        List<NameValuePair> nvps = new ArrayList<>();
+        List<NameValuePair> nvps = Lists.newArrayList();
         nvps.add(new BasicNameValuePair("latitude", String.valueOf(location.getLatitude())));
         nvps.add(new BasicNameValuePair("longitude", String.valueOf(location.getLongitude())));
         nvps.add(new BasicNameValuePair("coord_type", "3")); // 3：百度坐标系
@@ -217,24 +222,24 @@ public class AddressServiceImpl implements AddressService {
             HttpResponse response = httpClient.execute(post);
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                System.err.println("Can not upload lbs data for response: " + result);
-                return new ResultEntity(false, "Can not upload baidu lbs data");
+                LOGGER.error("上传LBS数据到百度云存储失败, Response: {}", result);
+                return new ResultEntity(false, "上传LBS数据到百度云存储失败");
             } else {
                 JsonNode jsonNode = objectMapper.readTree(result);
                 int status = jsonNode.get("status").asInt();
                 if (status != 0) {
                     String message = jsonNode.get("message").asText();
-                    System.err.println(String.format("Error to upload lbs data for status: %s, and message: %s", status, message));
-                    return new ResultEntity(false, "Error to upload lbs data");
+                    LOGGER.error("上传LBS数据到百度云存储失败, Status: {}. Message: {}", status, message);
+                    return new ResultEntity(false, "上传LBS数据到百度云存储失败");
                 } else {
                     return ResultEntity.success();
                 }
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("上传LBS数据到百度云存储异常");
+            return new ResultEntity(false, "上传LBS数据到百度云存储异常");
         }
-        return new ResultEntity(false);
     }
 
     private boolean isLbsDataExists(Long houseId) {
@@ -248,14 +253,14 @@ public class AddressServiceImpl implements AddressService {
             HttpResponse response = httpClient.execute(get);
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                System.err.println("Can not get lbs data for response: " + result);
+                LOGGER.error("获取LBS数据失败, Response: {}", result);
                 return false;
             }
 
             JsonNode jsonNode = objectMapper.readTree(result);
             int status = jsonNode.get("status").asInt();
             if (status != 0) {
-                System.err.println("Error to get lbs data for status: " + status);
+                LOGGER.error("获取LBS数据失败, Status: {}", status);
                 return false;
             } else {
                 long size = jsonNode.get("size").asLong();
@@ -266,15 +271,16 @@ public class AddressServiceImpl implements AddressService {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("获取LBS数据异常, House: {}", houseId);
             return false;
         }
     }
 
     @Override
     public ResultEntity removeLbs(Long houseId) {
+        LOGGER.debug("开始移除LBS数据, House: {}", houseId);
         HttpClient httpClient = HttpClients.createDefault();
-        List<NameValuePair> nvps = new ArrayList<>();
+        List<NameValuePair> nvps = Lists.newArrayListWithCapacity(3);
         nvps.add(new BasicNameValuePair("geotable_id", GEO_TABLE_ID));
         nvps.add(new BasicNameValuePair("ak", BAIDU_MAP_KEY));
         nvps.add(new BasicNameValuePair("houseId", String.valueOf(houseId)));
@@ -285,23 +291,22 @@ public class AddressServiceImpl implements AddressService {
             HttpResponse response = httpClient.execute(delete);
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                System.err.println("Error to delete lbs data for response: " + result);
-                return new ResultEntity(false);
+                LOGGER.error("移除LBS数据失败, Response: {}", response);
+                return new ResultEntity(false, "移除LBS数据失败");
             }
 
             JsonNode jsonNode = objectMapper.readTree(result);
             int status = jsonNode.get("status").asInt();
             if (status != 0) {
                 String message = jsonNode.get("message").asText();
-                System.err.println("Error to delete lbs data for message: " + message);
-                return new ResultEntity(false, "Error to delete lbs data for: " + message);
+                LOGGER.error("移除LBS数据失败, Message: {}", message);
+                return new ResultEntity(false, "移除LBS数据失败, Message: {}" + message);
             }
             return ResultEntity.success();
         } catch (IOException e) {
-            System.err.println("Error to delete lbs data.");
-            return new ResultEntity(false);
+            LOGGER.error("移除LBS数据异常");
+            return new ResultEntity(false, "移除LBS数据异常");
         }
-
     }
 
 }

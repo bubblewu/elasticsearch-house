@@ -5,6 +5,8 @@ import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.service.user.SMSService;
 import com.bubble.house.service.user.UserService;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,7 @@ import java.util.Objects;
  * date: 2019-11-06 10:43
  **/
 public class AuthFilter extends UsernamePasswordAuthenticationFilter {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AuthFilter.class);
 
     @Autowired
     private UserService userService;
@@ -30,6 +33,9 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
     @Autowired
     private SMSService smsService;
 
+    /**
+     * 用户鉴权
+     */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String name = obtainUsername(request);
@@ -39,6 +45,7 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
         }
         String telephone = request.getParameter("telephone");
         if (Strings.isNullOrEmpty(telephone) || !ToolKits.checkTelephone(telephone)) {
+            LOGGER.error("联系方式输入有误或非法");
             throw new BadCredentialsException("Wrong telephone number");
         }
 
@@ -51,6 +58,7 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
             }
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         } else {
+            LOGGER.error("smsCodeError");
             throw new BadCredentialsException("smsCodeError");
         }
     }

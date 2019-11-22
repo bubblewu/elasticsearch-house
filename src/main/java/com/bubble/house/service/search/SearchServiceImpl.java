@@ -1,6 +1,5 @@
 package com.bubble.house.service.search;
 
-import com.bubble.house.base.ConvertUtils;
 import com.bubble.house.base.HouseSort;
 import com.bubble.house.base.search.HouseIndexConstants;
 import com.bubble.house.base.search.HouseIndexMessage;
@@ -60,13 +59,18 @@ import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.elasticsearch.search.suggest.SuggestionBuilder;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * 搜索服务
@@ -76,6 +80,7 @@ import java.util.*;
  **/
 @Service
 public class SearchServiceImpl implements SearchService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SearchServiceImpl.class);
 
     private final HouseRepository houseRepository;
     private final HouseDetailRepository houseDetailRepository;
@@ -119,12 +124,11 @@ public class SearchServiceImpl implements SearchService {
                     this.removeIndex(message);
                     break;
                 default:
-                    System.out.println("Not support message content " + content);
+                    LOGGER.error("[Kafka] 不支持的操作类型: {}", content);
                     break;
             }
         } catch (JsonProcessingException e) {
-            System.out.println("Cannot parse json for " + content);
-            e.printStackTrace();
+            LOGGER.error("[Kafka] Json处理异常: {}", content);
         }
     }
 
@@ -132,29 +136,27 @@ public class SearchServiceImpl implements SearchService {
         Long houseId = message.getHouseId();
         DeleteRequest deleteRequest = new DeleteRequest(HouseIndexConstants.INDEX_NAME);
         deleteRequest.id(String.valueOf(houseId));
-        System.out.println("Delete by query for house: " + deleteRequest.toString());
+        LOGGER.debug("Delete Query: {}" + deleteRequest.toString());
         try {
             DeleteResponse deleteResponse = this.restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
             ReplicationResponse.ShardInfo shardInfo = deleteResponse.getShardInfo();
             DocWriteResponse.Result result = deleteResponse.getResult();
             if (result == DocWriteResponse.Result.DELETED) {
-                System.out.println("del : " + houseId);
-//                LOGGER.info("delete document「{} - {} - {}」successfully.", indexName, type, id);
+                LOGGER.info("删除[{}]成功.", houseId);
 
                 ResultEntity serviceResult = addressService.removeLbs(houseId);
                 if (!serviceResult.isSuccess()) {
-                    System.err.println("del lbs error: " + houseId);
+                    LOGGER.error("删除LBS data [{}]失败.", houseId);
                     // 重新加入消息队列
 //                    this.remove(houseId, message.getRetry() + 1);
                 }
             } else {
-                System.err.println("del error: " + houseId);
+                LOGGER.info("删除[{}]失败.", houseId);
                 // 重新加入消息队列
 //                this.remove(houseId, message.getRetry() + 1);
-//                LOGGER.error("delete document「{} - {} - {}」error.", indexName, type, id);
             }
         } catch (IOException e) {
-            System.err.println("del error");
+            LOGGER.info("删除[{}]异常.", houseId);
         }
     }
 
@@ -162,7 +164,7 @@ public class SearchServiceImpl implements SearchService {
         Long houseId = message.getHouseId();
         Optional<HouseEntity> houseOp = houseRepository.findById(houseId);
         if (!houseOp.isPresent()) {
-            System.out.println("Index house " + houseId + "  dose not exist!");
+            LOGGER.error("House: [{}]不存在", houseId);
             this.index(houseId, message.getRetry() + 1);
             return;
         }
@@ -171,8 +173,7 @@ public class SearchServiceImpl implements SearchService {
         modelMapper.map(house, indexTemplate);
         HouseDetailEntity detail = houseDetailRepository.findByHouseId(houseId);
         if (detail == null) {
-            // TODO 异常情况
-            System.err.println("detail is null");
+            LOGGER.error("Detail为NULL");
         }
         modelMapper.map(detail, indexTemplate);
 
@@ -219,12 +220,10 @@ public class SearchServiceImpl implements SearchService {
             if (!success || !serviceResult.isSuccess()) {
                 this.index(message.getHouseId(), message.getRetry() + 1);
             } else {
-                System.out.println("Index success with house " + houseId);
-
+                LOGGER.info("更新索引中的[{}]成功", houseId);
             }
         } catch (IOException e) {
-            System.err.println("createOrUpdateIndex error");
-            e.printStackTrace();
+            LOGGER.info("更新索引中的[{}]异常", houseId);
         }
     }
 
@@ -247,19 +246,17 @@ public class SearchServiceImpl implements SearchService {
 //                    .source(dataMap);
                     .source(objectMapper.writeValueAsBytes(indexTemplate), XContentType.JSON);
 
-            System.out.println("Create index with house: " + indexTemplate.getHouseId());
-
             IndexResponse response = this.restHighLevelClient.index(request, RequestOptions.DEFAULT);
             if (response.status() == RestStatus.CREATED) {
-                System.out.println(String.format("创建索引[%s]成功", indexName));
+                LOGGER.info("索引中添加[{}]成功", indexTemplate.getHouseId());
                 return true;
             } else {
-                System.err.println(String.format("创建索引[%s]失败", indexName));
+                LOGGER.info("索引中添加[{}]失败", indexTemplate.getHouseId());
             }
         } catch (JsonProcessingException e) {
-            System.err.println("Error to index house " + indexTemplate.getHouseId());
+            LOGGER.info("索引中添加[{}]时，Json处理异常", indexTemplate.getHouseId());
         } catch (IOException e) {
-            System.err.println(String.format("创建索引[%s]失败", indexName));
+            LOGGER.info("索引中添加[{}]异常", indexTemplate.getHouseId());
         }
         return false;
     }
@@ -273,15 +270,15 @@ public class SearchServiceImpl implements SearchService {
 //            updateRequest.upsert(objectMapper.writeValueAsBytes(indexTemplate), XContentType.JSON);
             updateRequest.doc(objectMapper.writeValueAsBytes(indexTemplate), XContentType.JSON);
 
-            System.out.println("Update index with house: " + indexTemplate.getHouseId());
             UpdateResponse response = this.restHighLevelClient.update(updateRequest, RequestOptions.DEFAULT);
             if (response.status() == RestStatus.OK) {
+                LOGGER.info("索引中更新[{}]成功", indexTemplate.getHouseId());
                 return true;
             }
         } catch (JsonProcessingException e) {
-            System.err.println("Error to index house " + indexTemplate.getHouseId());
+            LOGGER.info("索引中更新[{}]时，Json处理异常", indexTemplate.getHouseId());
         } catch (IOException e) {
-            System.err.println("update error.");
+            LOGGER.info("索引中更新[{}]异常", indexTemplate.getHouseId());
         }
         return false;
     }
@@ -289,40 +286,38 @@ public class SearchServiceImpl implements SearchService {
     private boolean deleteAndCreate(long totalHit, HouseIndexTemplate indexTemplate) {
         DeleteRequest deleteRequest = new DeleteRequest(HouseIndexConstants.INDEX_NAME);
         deleteRequest.id(String.valueOf(indexTemplate.getHouseId()));
-        System.out.println("Delete by query for house: " + deleteRequest.toString());
         try {
             DeleteResponse deleteResponse = this.restHighLevelClient.delete(deleteRequest, RequestOptions.DEFAULT);
             ReplicationResponse.ShardInfo shardInfo = deleteResponse.getShardInfo();
             DocWriteResponse.Result result = deleteResponse.getResult();
             if (result == DocWriteResponse.Result.DELETED) {
-                System.out.println("del : " + indexTemplate.getHouseId());
+                LOGGER.info("索引中删除[{}]成功", indexTemplate.getHouseId());
                 return true;
-//                LOGGER.info("delete document「{} - {} - {}」successfully.", indexName, type, id);
             } else if (shardInfo.getFailed() > 0) {
                 for (ReplicationResponse.ShardInfo.Failure failure : shardInfo.getFailures()) {
                     System.err.println("del error: " + indexTemplate.getHouseId());
-//                    LOGGER.error("delete document「{} - {} - {}」error.", indexName, type, id, failure.reason());
+                    LOGGER.info("索引中删除[{}]失败, INFO: {}", indexTemplate.getHouseId(), failure.reason());
                 }
             } else {
-                System.err.println("del error: " + indexTemplate.getHouseId());
-//                LOGGER.error("delete document「{} - {} - {}」error.", indexName, type, id);
+                LOGGER.info("索引中删除[{}]失败", indexTemplate.getHouseId());
             }
         } catch (IOException e) {
-            System.err.println("del error");
+            LOGGER.info("索引中删除[{}]异常", indexTemplate.getHouseId());
+
         }
         return create(indexTemplate);
     }
 
     private void index(Long houseId, int retry) {
         if (retry > HouseIndexMessage.MAX_RETRY) {
-            System.out.println("Retry index times over 3 for house: " + houseId + " Please check it!");
+            LOGGER.info("重试次数超过{}, 请检查House:[{}]", HouseIndexMessage.MAX_RETRY, houseId);
             return;
         }
         HouseIndexMessage message = new HouseIndexMessage(houseId, HouseIndexMessage.INDEX, retry);
         try {
             kafkaTemplate.send(HouseIndexConstants.INDEX_TOPIC, objectMapper.writeValueAsString(message));
         } catch (JsonProcessingException e) {
-            System.out.println("Json encode error for " + message);
+            LOGGER.info("Json encode error for {} ", message);
         }
     }
 
@@ -333,14 +328,14 @@ public class SearchServiceImpl implements SearchService {
 
     private void remove(Long houseId, int retry) {
         if (retry > HouseIndexMessage.MAX_RETRY) {
-            System.out.println("Retry remove times over 3 for house: " + houseId + " Please check it!");
+            LOGGER.info("重试次数超过{}, 请检查House:[{}]", HouseIndexMessage.MAX_RETRY, houseId);
             return;
         }
         HouseIndexMessage message = new HouseIndexMessage(houseId, HouseIndexMessage.REMOVE, retry);
         try {
             this.kafkaTemplate.send(HouseIndexConstants.INDEX_TOPIC, objectMapper.writeValueAsString(message));
         } catch (JsonProcessingException e) {
-            System.out.println("Cannot encode json for " + message);
+            LOGGER.info("Json encode error for {} ", message);
         }
     }
 
@@ -433,7 +428,7 @@ public class SearchServiceImpl implements SearchService {
             if (response.status() == RestStatus.OK) {
                 SearchHits hits = response.getHits();
                 TotalHits totalHits = hits.getTotalHits();
-                System.out.println("hit count: " + totalHits.value);
+                LOGGER.info("命中：{}", totalHits.value);
                 SearchHit[] searchHits = hits.getHits();
                 for (SearchHit hit : response.getHits()) {
                     System.out.println(hit.getSourceAsMap());
@@ -442,12 +437,11 @@ public class SearchServiceImpl implements SearchService {
                 }
                 return new MultiResultEntity<>(totalHits.value, houseIds);
             } else {
-                System.out.println("Search status is no ok for: " + request);
+                LOGGER.error("Search status is not ok for: {}", request);
                 return new MultiResultEntity<>(0, houseIds);
             }
         } catch (IOException e) {
-            System.out.println("Query Error...");
-            e.printStackTrace();
+            LOGGER.error("Query Error...");
         }
 
         return new MultiResultEntity<>(0, Lists.newArrayList());
@@ -498,8 +492,7 @@ public class SearchServiceImpl implements SearchService {
                 return ResultEntity.of(Lists.newArrayList());
             }
         } catch (IOException e) {
-            System.out.println("input suggest error.");
-            e.printStackTrace();
+            LOGGER.error("异常");
         }
 
         return ResultEntity.of(Lists.newArrayList());
@@ -540,8 +533,7 @@ public class SearchServiceImpl implements SearchService {
             indexTemplate.setSuggest(suggests);
             return true;
         } catch (IOException e) {
-            System.err.println("updateSuggest error");
-            e.printStackTrace();
+            LOGGER.info("异常");
         }
         return false;
     }
@@ -563,15 +555,16 @@ public class SearchServiceImpl implements SearchService {
             SearchResponse response = this.restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
             if (response.status() == RestStatus.OK) {
                 Terms terms = response.getAggregations().get(HouseIndexConstants.AGG_DISTRICT);
-                if (null != terms.getBuckets() && !terms.getBuckets().isEmpty()) {
-                    return ResultEntity.of(terms.getBucketByKey(district).getDocCount());
+                if (null != terms) { // ES中无该数据时
+                    if (null != terms.getBuckets() && !terms.getBuckets().isEmpty()) {
+                        return ResultEntity.of(terms.getBucketByKey(district).getDocCount());
+                    }
                 }
             } else {
-                System.out.println("Failed to Aggregate for " + HouseIndexConstants.AGG_DISTRICT);
+                LOGGER.error("Failed to Aggregate for: {} ", HouseIndexConstants.AGG_DISTRICT);
             }
         } catch (IOException e) {
-            System.out.println("aggregate district house error.");
-            e.printStackTrace();
+            LOGGER.info("aggregate district house 异常");
         }
 
         return ResultEntity.of(0L);
@@ -594,7 +587,7 @@ public class SearchServiceImpl implements SearchService {
             SearchResponse response = this.restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
             List<HouseBucketEntity> buckets = Lists.newArrayList();
             if (response.status() != RestStatus.OK) {
-                System.out.println("Aggregate status is not ok for " + searchRequest);
+                LOGGER.error("Aggregate status is not ok for: {}", searchRequest.toString());
                 return new MultiResultEntity<>(0, buckets);
             }
             Terms terms = response.getAggregations().get(HouseIndexConstants.AGG_REGION);
@@ -603,7 +596,7 @@ public class SearchServiceImpl implements SearchService {
             }
             return new MultiResultEntity<>(response.getHits().getTotalHits().value, buckets);
         } catch (IOException e) {
-            System.err.println("map aggregate error.");
+            LOGGER.error("map aggregate error.");
         }
 
         return new MultiResultEntity<>(0, Lists.newArrayList());
@@ -627,7 +620,7 @@ public class SearchServiceImpl implements SearchService {
             List<Long> houseIds = Lists.newArrayList();
 
             if (response.status() != RestStatus.OK) {
-                System.out.println("Search status is not ok for " + searchRequest.toString());
+                LOGGER.error("Search status is not ok for: {}", searchRequest.toString());
                 return new MultiResultEntity<>(0, houseIds);
             }
             for (SearchHit hit : response.getHits()) {
@@ -635,8 +628,7 @@ public class SearchServiceImpl implements SearchService {
             }
             return new MultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
         } catch (IOException e) {
-            System.err.println("map query error");
-            e.printStackTrace();
+            LOGGER.error("异常");
         }
         return new MultiResultEntity<>(0, Lists.newArrayList());
     }
@@ -667,7 +659,7 @@ public class SearchServiceImpl implements SearchService {
             List<Long> houseIds = Lists.newArrayList();
 
             if (response.status() != RestStatus.OK) {
-                System.out.println("Search status is not ok for " + searchRequest.toString());
+                LOGGER.error("Search status is not ok for: {}", searchRequest.toString());
                 return new MultiResultEntity<>(0, houseIds);
             }
             for (SearchHit hit : response.getHits()) {
@@ -675,8 +667,7 @@ public class SearchServiceImpl implements SearchService {
             }
             return new MultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
         } catch (IOException e) {
-            System.err.println("map query error");
-            e.printStackTrace();
+            LOGGER.error("异常");
         }
         return new MultiResultEntity<>(0, Lists.newArrayList());
     }

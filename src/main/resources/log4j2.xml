@@ -95,6 +95,13 @@
         <!--        </AsyncLogger>-->
 
         <!--        <logger name="org.mongodb" level="ERROR"/>-->
+<!--        <logger name="org.apache" level="INFO"/>-->
+<!--        <logger name="org.springframework" level="INFO"/>-->
+        <logger name="com.zaxxer" level="INFO"/>
+<!--        <logger name="org.hibernate" level="INFO"/>-->
+<!--        <logger name="org.thymeleaf" level="INFO"/>-->
+        <logger name="io" level="INFO"/>
+        <logger name="org" level="INFO"/>
 
         <asyncRoot level="all" includeLocation="true">
             <appenderRef ref="Console"/>

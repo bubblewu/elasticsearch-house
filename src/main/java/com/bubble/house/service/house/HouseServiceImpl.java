@@ -19,6 +19,8 @@ import com.google.common.collect.Lists;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,6 +42,7 @@ import java.util.*;
  **/
 @Service
 public class HouseServiceImpl implements HouseService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(HouseServiceImpl.class);
 
     @Value("${qiniu.cdn.prefix}")
     private String cdnPrefix;
@@ -105,21 +108,21 @@ public class HouseServiceImpl implements HouseService {
 
         houseDTO.setHouseDetail(houseDetailDTO);
 
-        List<HousePictureDTO> pictureDTOS = new ArrayList<>();
+        List<HousePictureDTO> pictureDTOS = Lists.newArrayList();
         housePictures.forEach(housePicture -> pictureDTOS.add(this.modelMapper.map(housePicture, HousePictureDTO.class)));
         houseDTO.setPictures(pictureDTOS);
         houseDTO.setCover(this.cdnPrefix + houseDTO.getCover());
 
         List<String> tags = houseParam.getTags();
         if (tags != null && !tags.isEmpty()) {
-            List<HouseTagEntity> houseTags = new ArrayList<>();
+            List<HouseTagEntity> houseTags = Lists.newArrayList();
             for (String tag : tags) {
                 houseTags.add(new HouseTagEntity(house.getId(), tag));
             }
             this.houseTagRepository.saveAll(houseTags);
             houseDTO.setTags(tags);
         }
-
+        LOGGER.info("save house [{}] info successfully", house.getId());
         return new ResultEntity<>(true, null, houseDTO);
     }
 
@@ -127,7 +130,7 @@ public class HouseServiceImpl implements HouseService {
      * 图片对象列表信息填充
      */
     private List<HousePictureEntity> generatePictures(HouseParam houseParam, Long houseId) {
-        List<HousePictureEntity> pictures = new ArrayList<>();
+        List<HousePictureEntity> pictures = Lists.newArrayList();
         if (houseParam.getPhotos() == null || houseParam.getPhotos().isEmpty()) {
             return pictures;
         }
@@ -152,6 +155,7 @@ public class HouseServiceImpl implements HouseService {
             SubwayEntity subway = subwayOp.get();
             Optional<SubwayStationEntity> subwayStationOp = this.subwayStationRepository.findById(houseParam.getSubwayStationId());
             if (!subwayStationOp.isPresent() || !subway.getId().equals(subwayStationOp.get().getSubwayId())) {
+                LOGGER.error("[{}] Not valid subway station!", houseDetail.getHouseId());
                 return new ResultEntity<>(false, "Not valid subway station!");
             } else {
                 SubwayStationEntity subwayStation = subwayStationOp.get();
@@ -170,6 +174,7 @@ public class HouseServiceImpl implements HouseService {
                 houseDetail.setTraffic(houseParam.getTraffic());
             }
         } else {
+            LOGGER.error("[{}] Not valid subway line!", houseDetail.getHouseId());
             return new ResultEntity<>(false, "Not valid subway line!");
         }
         return null;
@@ -177,7 +182,7 @@ public class HouseServiceImpl implements HouseService {
 
     @Override
     public MultiResultEntity<HouseDTO> adminQuery(DatatableSearchParam searchBody) {
-        List<HouseDTO> houseDTOS = new ArrayList<>();
+        List<HouseDTO> houseDTOS = Lists.newArrayList();
         // 分页查询
         Sort sort = Sort.by(Sort.Direction.fromString(searchBody.getDirection()), searchBody.getOrderBy());
         int page = searchBody.getStart() / searchBody.getLength();
@@ -231,13 +236,13 @@ public class HouseServiceImpl implements HouseService {
         List<HousePictureEntity> pictures = housePictureRepository.findAllByHouseId(id);
 
         HouseDetailDTO detailDTO = modelMapper.map(detail, HouseDetailDTO.class);
-        List<HousePictureDTO> pictureDTOS = new ArrayList<>();
+        List<HousePictureDTO> pictureDTOS = Lists.newArrayList();
         for (HousePictureEntity picture : pictures) {
             HousePictureDTO pictureDTO = modelMapper.map(picture, HousePictureDTO.class);
             pictureDTOS.add(pictureDTO);
         }
         List<HouseTagEntity> tags = houseTagRepository.findAllByHouseId(id);
-        List<String> tagList = new ArrayList<>();
+        List<String> tagList = Lists.newArrayList();
         for (HouseTagEntity tag : tags) {
             tagList.add(tag.getName());
         }
@@ -304,7 +309,7 @@ public class HouseServiceImpl implements HouseService {
                     return new ResultEntity(false, response.error);
                 }
             } catch (QiniuException e) {
-                e.printStackTrace();
+                LOGGER.error("删除七牛云图片[{}]异常", id);
                 return new ResultEntity(false, e.getMessage());
             }
         } else {
@@ -415,7 +420,7 @@ public class HouseServiceImpl implements HouseService {
         };
         Page<HouseEntity> houses = this.houseRepository.findAll(specification, pageable);
 
-//        List<HouseDTO> houseDTOS = new ArrayList<>();
+//        List<HouseDTO> houseDTOS = Lists.newArrayList();
 //        houses.forEach(house -> {
 //            HouseDTO houseDTO = this.modelMapper.map(house, HouseDTO.class);
 //            houseDTO.setCover(this.cdnPrefix + house.getCover());
@@ -442,7 +447,7 @@ public class HouseServiceImpl implements HouseService {
      * 渲染完整的HouseDTO信息
      */
     private List<HouseDTO> wrapperHouseResult(List<Long> houseIds) {
-        List<HouseDTO> result = new ArrayList<>();
+        List<HouseDTO> result = Lists.newArrayList();
         Map<Long, HouseDTO> idToHouseMap = new HashMap<>();
         Iterable<HouseEntity> houses = houseRepository.findAllById(houseIds);
         houses.forEach(house -> {
@@ -482,7 +487,7 @@ public class HouseServiceImpl implements HouseService {
         MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
 
         if (serviceResult.getTotal() == 0) {
-            return new MultiResultEntity<>(0, new ArrayList<>());
+            return new MultiResultEntity<>(0, Lists.newArrayList());
         }
         List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
         return new MultiResultEntity<>(serviceResult.getTotal(), houses);
@@ -492,7 +497,7 @@ public class HouseServiceImpl implements HouseService {
     public MultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch) {
         MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
         if (serviceResult.getTotal() == 0) {
-            return new MultiResultEntity<>(0, new ArrayList<>());
+            return new MultiResultEntity<>(0, Lists.newArrayList());
         }
 
         List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());

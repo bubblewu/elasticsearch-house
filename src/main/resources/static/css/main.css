@@ -100,7 +100,7 @@ body {
 .bubble-header .logo {
     display: block;
     height: 55px;
-    background-image: url(/static/images/logo_bg.jpg);
+    background-image: url(/static/images/logo_bg.png);
     width: 100px;
     background-repeat: no-repeat
 }
@@ -400,7 +400,7 @@ body {
 
 @media only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min--moz-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (min-device-pixel-ratio: 1.5) {
     .bubble-header .logo {
-        background: url(/static/images/logo_bg.jpg);
+        background: url(/static/images/logo_bg.png);
         background-size: 110px 55px;
     }
 }
@@ -409,7 +409,7 @@ body {
     width: 259px !important;
     display: block !important;
     height: 55px !important;
-    background: url(/static/images/logo_bg.jpg) !important;
+    background: url(/static/images/logo_bg.png) !important;
     background-repeat: no-repeat !important
 }
 
@@ -464,7 +464,7 @@ body {
 }
 
 .footer {
-    background: url(/static/images/footer-bg.jpg) no-repeat center top #222;
+    background: url(/static/images/footer-bg.png) no-repeat center top #222;
     clear: both;
     /*width: 100%;*/
     height: 150px;

@@ -9,6 +9,8 @@ import com.bubble.house.repository.RoleRepository;
 import com.bubble.house.repository.UserRepository;
 import com.google.common.collect.Lists;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,6 +33,7 @@ import java.util.Optional;
  **/
 @Service
 public class UserServiceImpl implements UserService {
+    private final static Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -55,7 +58,8 @@ public class UserServiceImpl implements UserService {
         if (user != null) {
             List<RoleEntity> roles = roleRepository.findRolesByUserId(user.getId());
             if (roles == null || roles.isEmpty()) {
-                throw new DisabledException("权限非法");
+                LOGGER.error("用户[{}]无权限", userName);
+                throw new DisabledException("用户[" + userName + "]无权限");
             }
 
             List<GrantedAuthority> authorities = new ArrayList<>();
@@ -84,6 +88,7 @@ public class UserServiceImpl implements UserService {
         }
         List<RoleEntity> roles = roleRepository.findRolesByUserId(user.getId());
         if (roles == null || roles.isEmpty()) {
+            LOGGER.error("用户[{} - {}]无权限", user.getId(), telephone);
             throw new DisabledException("权限非法");
         }
 
