@@ -26,5 +26,14 @@ spring:
     timeout: 3000
     jedis:
       pool:
-        min-idle: 1
+        min-idle: 1  # 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止
+        max-wait: 60000 # 最大等待值
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    consumer:
+      group-id: es-house
 
+elasticsearch:
+  host: 127.0.0.1
+  port: 9200
+  scheme: http

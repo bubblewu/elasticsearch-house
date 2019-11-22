@@ -14,6 +14,7 @@ public class ApiResponse implements Serializable {
     private int code;
     private String msg;
     private Object data;
+    private boolean more;
 
     public ApiResponse() {
         this.code = ApiStatus.SUCCESS.getCode();
@@ -60,6 +61,14 @@ public class ApiResponse implements Serializable {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public boolean isMore() {
+        return more;
+    }
+
+    public void setMore(boolean more) {
+        this.more = more;
     }
 
 }

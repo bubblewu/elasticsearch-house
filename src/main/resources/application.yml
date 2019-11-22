@@ -40,15 +40,15 @@ server:
       enabled: false  # 进入SpringBoot框架自动生成whitelabel页面
 # 七牛云配置
 qiniu:
-  access-key: xxx
-  secret-key: xxx
-  bucket: newcarspicture
+  access-key: GVD-MVQEoOiJOt7yNBDo-JrOKWHB33eZN2JmDFC6
+  secret-key: sHnl57ZXtStejn7GgY5VF3lnm1CxMJ3hcayexAWz
+  bucket: lakers
   cdn:
-      prefix:
+      prefix: http://7xo6gy.com1.z0.glb.clouddn.com/
 # 阿里云短信配置
 aliyun:
   sms:
-    access-key: xxx
-    secret-key: xxxx
+    access-key: LTAISjYxxr5qLmio
+    secret-key: pkqEMJIcVQV8G5fkNEQNDQV7rsntKV
     template:
-      code: xxx
+      code: SMS_95590008

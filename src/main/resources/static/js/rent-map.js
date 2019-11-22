@@ -29,7 +29,7 @@ function load(city, regions, aggData) {
     map.addEventListener('zoomend', function (event) {
         mapResize(event.target);
     });
-    // 地图拖拽完成事件
+    // 房源信息列表和地图界面联动，地图拖拽完成事件
     map.addEventListener('dragend', function (event) {
         mapResize(event.target);
     });
@@ -53,7 +53,7 @@ function drawRegion(map, regionList) {
         if (regionList[i].en_name in regionCountMap) {
             houseCount = regionCountMap[regionList[i].en_name];
         }
-
+        // 提示文案
         var textContent = '<p style="margin-top: 20px; pointer-events: none">' +
             regionList[i].cn_name + '</p>' + '<p style="pointer-events: none">' +
             houseCount + '套</p>';
@@ -109,6 +109,8 @@ function drawRegion(map, regionList) {
             })
         })(textContent);
 
+        // 关于城市的各区边界：鼠标事件绑定
+        // 鼠标移入标签时，展示边界
         textLabel.addEventListener('mouseover', function (event) {
             var label = event.target;
             var boundaries = polygonContext[label.getContent()];
@@ -118,7 +120,7 @@ function drawRegion(map, regionList) {
                 boundaries[n].show();
             }
         });
-
+        // 鼠标移出标签时，边界隐藏
         textLabel.addEventListener('mouseout', function (event) {
             var label = event.target;
             var boundaries = polygonContext[label.getContent()];
@@ -129,11 +131,12 @@ function drawRegion(map, regionList) {
             }
         });
 
+        // 点击事件，
         textLabel.addEventListener('click', function (event) {
             var label = event.target;
             var map = label.getMap();
-            map.zoomIn();
-            map.panTo(event.point);
+            map.zoomIn(); // 缩小
+            map.panTo(event.point); // 移到当前点击事件的中心处
         });
     }
 
@@ -149,7 +152,7 @@ function drawRegion(map, regionList) {
         customLayer.addEventListener('onhotspotclick', houseTip); // 单击图层事件
     }
 
-    function houseTip(e) {
+    function houseTip(e) { // 单击图层事件时显示的房源信息
         var customPoi = e.customPoi; // poi的默认字段
         var contentPoi = e.content; // poi的自定义字段
 
@@ -178,8 +181,8 @@ function drawRegion(map, regionList) {
             enableSendToPhone: true, // 是否显示发送到手机按钮
             searchTypes: [
                 BMAPLIB_TAB_SEARCH, // 周边检索
-                // BMAPLIB_TAB_TO_HERE, // 到这里去
-                // BMAPLIB_TAB_FROM_HERE // 从这里出发
+                BMAPLIB_TAB_TO_HERE, // 到这里去
+                BMAPLIB_TAB_FROM_HERE // 从这里出发
             ]
         });
 

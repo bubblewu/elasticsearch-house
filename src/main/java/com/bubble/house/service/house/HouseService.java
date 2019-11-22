@@ -6,6 +6,7 @@ import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.param.RentSearchParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.search.MapSearchEntity;
 
 /**
  * House相关服务接口
@@ -65,5 +66,14 @@ public interface HouseService {
      */
     MultiResultEntity<HouseDTO> query(RentSearchParam rentSearch);
 
+    /**
+     * 全地图查询
+     */
+    MultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch);
+
+    /**
+     * 精确范围数据查询
+     */
+    MultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch);
 
 }

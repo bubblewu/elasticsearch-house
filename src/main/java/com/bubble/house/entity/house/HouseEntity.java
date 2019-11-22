@@ -61,7 +61,7 @@ public class HouseEntity implements Serializable {
 
     private String street;
 
-    private String district;
+    private String district; // 朝向：1、2、3、4、5 -> 东、南、西、北、南北
 
     private int direction;
 

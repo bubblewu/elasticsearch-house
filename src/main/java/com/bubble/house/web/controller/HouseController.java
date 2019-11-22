@@ -3,25 +3,30 @@ package com.bubble.house.web.controller;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.dto.HouseDTO;
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.MultiResultEntity;
+import com.bubble.house.entity.dto.UserDTO;
 import com.bubble.house.entity.house.CityEntity;
+import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
+import com.bubble.house.entity.param.RentSearchParam;
+import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.search.HouseBucketEntity;
+import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.entity.search.RentValueBlockEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
+import com.bubble.house.service.search.SearchService;
+import com.bubble.house.service.user.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 房屋相关接口
@@ -34,10 +39,15 @@ public class HouseController {
 
     private final AddressService addressService;
     private final HouseService houseService;
+    private final UserService userService;
+    private final SearchService searchService;
 
-    public HouseController(AddressService addressService, HouseService houseService) {
+    public HouseController(AddressService addressService, HouseService houseService,
+                           UserService userService, SearchService searchService) {
         this.addressService = addressService;
         this.houseService = houseService;
+        this.userService = userService;
+        this.searchService = searchService;
     }
 
     /**
@@ -93,6 +103,9 @@ public class HouseController {
     }
 
 
+    /**
+     * 房源信息浏览排序
+     */
     @GetMapping("rent/house")
     public String rentHousePage(@ModelAttribute RentSearchParam rentSearch,
                                 Model model, HttpSession session,
@@ -143,6 +156,102 @@ public class HouseController {
         model.addAttribute("currentAreaBlock", RentValueBlockEntity.matchArea(rentSearch.getAreaBlock()));
 
         return "rent-list";
+    }
+
+    /**
+     * search-as-you-type：搜索自动补全接口
+     *
+     * @param prefix 输入前缀
+     * @return 搜索建议
+     */
+    @GetMapping("rent/house/autocomplete")
+    @ResponseBody
+    public ApiResponse autocomplete(@RequestParam(value = "prefix") String prefix) {
+        if (prefix.isEmpty()) {
+            return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
+        }
+        ResultEntity<List<String>> result = this.searchService.suggest(prefix);
+        return ApiResponse.ofSuccess(result.getResult());
+    }
+
+    /**
+     * 房源信息详情页
+     */
+    @GetMapping("rent/house/show/{id}")
+    public String show(@PathVariable(value = "id") Long houseId,
+                       Model model) {
+        if (houseId <= 0) {
+            return "404";
+        }
+        ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(houseId);
+        if (!serviceResult.isSuccess()) {
+            return "404";
+        }
+
+        HouseDTO houseDTO = serviceResult.getResult();
+        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(houseDTO.getCityEnName(), houseDTO.getRegionEnName());
+        CityEntity city = addressMap.get(CityLevel.CITY);
+        CityEntity region = addressMap.get(CityLevel.REGION);
+        model.addAttribute("city", city);
+        model.addAttribute("region", region);
+
+        ResultEntity<UserDTO> userDTOServiceResult = userService.findById(houseDTO.getAdminId());
+        // 经纪人
+        model.addAttribute("agent", userDTOServiceResult.getResult());
+        model.addAttribute("house", houseDTO);
+        // 聚合数据：房源信息在小区中的数量
+        ResultEntity<Long> aggResult = searchService.aggregateDistrictHouse(city.getEnName(), region.getEnName(), houseDTO.getDistrict());
+        model.addAttribute("houseCountInDistrict", aggResult.getResult());
+//        model.addAttribute("houseCountInDistrict", 0);
+        return "house-detail";
+    }
+
+    /**
+     * 地图找房
+     */
+    @GetMapping("rent/house/map")
+    public String rentMapPage(@RequestParam(value = "cityEnName") String cityEnName, Model model,
+                              HttpSession session, RedirectAttributes redirectAttributes) {
+        ResultEntity<CityEntity> city = addressService.findCity(cityEnName);
+        if (!city.isSuccess()) {
+            redirectAttributes.addAttribute("msg", "must_chose_city");
+            return "redirect:/index";
+        } else {
+            session.setAttribute("cityName", cityEnName);
+            model.addAttribute("city", city.getResult());
+        }
+        MultiResultEntity<CityEntity> regions = addressService.findAllRegionsByCityEnName(cityEnName);
+
+        MultiResultEntity<HouseBucketEntity> serviceResult = searchService.mapAggregate(cityEnName);
+
+        model.addAttribute("aggData", serviceResult.getResult());
+        model.addAttribute("total", serviceResult.getTotal());
+        model.addAttribute("regions", regions.getResult());
+        return "rent-map";
+    }
+
+    /**
+     * 地图找房：房源信息列表
+     */
+    @GetMapping("rent/house/map/houses")
+    @ResponseBody
+    public ApiResponse rentMapHouses(@ModelAttribute MapSearchEntity mapSearch) {
+        if (mapSearch.getCityEnName() == null) {
+            return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), "必须选择城市");
+        }
+        MultiResultEntity<HouseDTO> serviceMultiResult;
+        if (mapSearch.getLevel() < 13) {
+            serviceMultiResult = houseService.wholeMapQuery(mapSearch);
+        } else {
+            // 小地图查询必须要传递地图边界参数
+            // 房源信息列表和地图界面联动
+            serviceMultiResult = houseService.boundMapQuery(mapSearch);
+        }
+
+        ApiResponse response = ApiResponse.ofSuccess(serviceMultiResult.getResult());
+        response.setMore(serviceMultiResult.getTotal() > (mapSearch.getStart() + mapSearch.getSize()));
+        return response;
+
     }
 
 }

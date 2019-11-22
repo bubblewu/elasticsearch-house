@@ -22,7 +22,7 @@ public class CustomInterceptor extends HandlerInterceptorAdapter {
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("Interceptor preHandler method is running !");
+//        System.out.println("Interceptor preHandler method is running !");
         return super.preHandle(request, response, handler);
     }
 
@@ -35,7 +35,7 @@ public class CustomInterceptor extends HandlerInterceptorAdapter {
      */
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        System.out.println("Interceptor postHandler method is running !");
+//        System.out.println("Interceptor postHandler method is running !");
         super.postHandle(request, response, handler, modelAndView);
     }
 
@@ -47,7 +47,7 @@ public class CustomInterceptor extends HandlerInterceptorAdapter {
      */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        System.out.println("Interceptor afterCompletion method is running !");
+//        System.out.println("Interceptor afterCompletion method is running !");
         super.afterCompletion(request, response, handler, ex);
     }
 
@@ -58,7 +58,7 @@ public class CustomInterceptor extends HandlerInterceptorAdapter {
      */
     @Override
     public void afterConcurrentHandlingStarted(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        System.out.println("Interceptor afterConcurrentHandlingStarted method is running !");
+//        System.out.println("Interceptor afterConcurrentHandlingStarted method is running !");
         super.afterConcurrentHandlingStarted(request, response, handler);
     }
 

@@ -29,7 +29,7 @@ public class HouseDetailEntity implements Serializable {
     private String traffic;
 
     @Column(name = "round_service")
-    private String roundService;
+    private String roundService;  // 周边配套
 
     @Column(name = "rent_way")
     private int rentWay;

@@ -12,7 +12,9 @@ import com.bubble.house.entity.param.PhotoParam;
 import com.bubble.house.entity.param.RentSearchParam;
 import com.bubble.house.entity.result.MultiResultEntity;
 import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.repository.*;
+import com.bubble.house.service.search.SearchService;
 import com.google.common.collect.Lists;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -29,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.Predicate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * House相关服务接口实现
@@ -57,11 +58,13 @@ public class HouseServiceImpl implements HouseService {
     private final HousePictureRepository housePictureRepository;
     private final HouseSubscribeRepository subscribeRepository;
     private final QiNiuService qiNiuService;
+    private final SearchService searchService;
 
     public HouseServiceImpl(SubwayRepository subwayRepository, SubwayStationRepository subwayStationRepository,
                             HouseRepository houseRepository, HouseDetailRepository houseDetailRepository,
                             HouseTagRepository houseTagRepository, HousePictureRepository housePictureRepository,
-                            HouseSubscribeRepository subscribeRepository, QiNiuService qiNiuService) {
+                            HouseSubscribeRepository subscribeRepository, QiNiuService qiNiuService,
+                            SearchService searchService) {
         this.subwayRepository = subwayRepository;
         this.subwayStationRepository = subwayStationRepository;
         this.houseRepository = houseRepository;
@@ -70,6 +73,7 @@ public class HouseServiceImpl implements HouseService {
         this.housePictureRepository = housePictureRepository;
         this.subscribeRepository = subscribeRepository;
         this.qiNiuService = qiNiuService;
+        this.searchService = searchService;
     }
 
     @Override
@@ -280,9 +284,9 @@ public class HouseServiceImpl implements HouseService {
         house.setLastUpdateTime(new Date());
         houseRepository.save(house);
 
-//        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
-//            this.searchService.index(house.getId());
-//        }
+        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
+            this.searchService.index(house.getId());
+        }
 
         return ResultEntity.success();
     }
@@ -372,31 +376,29 @@ public class HouseServiceImpl implements HouseService {
         }
         this.houseRepository.updateStatus(id, status);
 
-//        // 上架更新索引 其他情况都要删除索引
-//        if (status == HouseStatus.PASSES.getValue()) {
-//            searchService.index(id);
-//        } else {
-//            searchService.remove(id);
-//        }
+        // 上架更新索引 其他情况都要删除索引
+        if (status == HouseStatus.PASSES.getValue()) {
+            searchService.index(id);
+        } else {
+            searchService.remove(id);
+        }
         return ResultEntity.success();
     }
 
-
     @Override
     public MultiResultEntity<HouseDTO> query(RentSearchParam rentSearch) {
-//        Sort sort = Sort.by(Sort.Direction.DESC, "lastUpdateTime");
-//        Sort sort;
-//        String sortField;
-//        if (rentSearch.getOrderBy().isEmpty()) {
-//            sortField = "lastUpdateTime";
-//        } else {
-//            sortField = rentSearch.getOrderBy();
-//        }
-//        if ("asc".equals(rentSearch.getOrderDirection())) { // 升序
-//            sort = Sort.by(Sort.Direction.ASC, sortField);
-//        } else {
-//            sort = Sort.by(Sort.Direction.DESC, sortField);
-//        }
+        if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
+            MultiResultEntity<Long> multiResult = this.searchService.query(rentSearch);
+            if (multiResult.getTotal() == 0) {
+                return new MultiResultEntity<>(0, Lists.newArrayList());
+            }
+            return new MultiResultEntity<>(multiResult.getTotal(), wrapperHouseResult(multiResult.getResult()));
+        }
+        // 简单查询
+        return simpleQuery(rentSearch);
+    }
+
+    private MultiResultEntity<HouseDTO> simpleQuery(RentSearchParam rentSearch) {
         Sort sort = HouseSort.generateSort(rentSearch.getOrderBy(), rentSearch.getOrderDirection());
         int page = rentSearch.getStart() / rentSearch.getSize();
         Pageable pageable = PageRequest.of(page, rentSearch.getSize(), sort);
@@ -404,6 +406,11 @@ public class HouseServiceImpl implements HouseService {
         Specification specification = (Specification) (root, criteriaQuery, criteriaBuilder) -> {
             Predicate predicate = criteriaBuilder.equal(root.get("status"), HouseStatus.PASSES.getValue());
             predicate = criteriaBuilder.and(predicate, criteriaBuilder.equal(root.get("cityEnName"), rentSearch.getCityEnName()));
+
+            // 处理距离地铁距离为-1（无地铁）的情况(排序一直在前)
+            if (HouseSort.DISTANCE_TO_SUBWAY_KEY.equals(rentSearch.getOrderBy())) {
+                predicate = criteriaBuilder.and(predicate, criteriaBuilder.gt(root.get(HouseSort.DISTANCE_TO_SUBWAY_KEY), -1));
+            }
             return predicate;
         };
         Page<HouseEntity> houses = this.houseRepository.findAll(specification, pageable);
@@ -469,5 +476,27 @@ public class HouseServiceImpl implements HouseService {
         });
     }
 
+
+    @Override
+    public MultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch) {
+        MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
+
+        if (serviceResult.getTotal() == 0) {
+            return new MultiResultEntity<>(0, new ArrayList<>());
+        }
+        List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
+        return new MultiResultEntity<>(serviceResult.getTotal(), houses);
+    }
+
+    @Override
+    public MultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch) {
+        MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
+        if (serviceResult.getTotal() == 0) {
+            return new MultiResultEntity<>(0, new ArrayList<>());
+        }
+
+        List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
+        return new MultiResultEntity<>(serviceResult.getTotal(), houses);
+    }
 
 }
