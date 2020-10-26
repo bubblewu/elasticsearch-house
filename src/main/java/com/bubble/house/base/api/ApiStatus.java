@@ -7,6 +7,9 @@ package com.bubble.house.base.api;
  * date: 2019-11-04 16:37
  **/
 public enum ApiStatus {
+    /**
+     * API状态码信息
+     */
     SUCCESS(200, "OK"),
     BAD_REQUEST(400, "Bad Request"),
     NOT_FOUND(404, "Not Found"),

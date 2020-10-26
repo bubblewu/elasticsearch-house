@@ -9,11 +9,14 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
-import org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring5.SpringTemplateEngine;
+import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
 /**
  * Web相关的配置类:
  * - thymeleaf模版引擎配置重写WebMvcConfigurer，添加自定义拦截器，消息转换器等
+ * ApplicationContextAware接口用来获取Spring的上下文
  *
  * @author wugang
  * date: 2019-11-04 14:22
@@ -31,13 +34,17 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
+    /* --- Thymeleaf模版引擎配置 --- */
+
     /**
-     * 模板资源解析器
+     * 模板资源解析器。
+     * ConfigurationProperties 绑定配置文件中thymeleaf的前缀
      */
     @Bean
     @ConfigurationProperties(prefix = "spring.thymeleaf")
     public SpringResourceTemplateResolver templateResolver() {
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        // 配置Spring上下文
         templateResolver.setApplicationContext(this.applicationContext);
         templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(thymeleafCacheEnable);
@@ -45,12 +52,41 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
     }
 
     /**
+     * Thymeleaf标准方言解释器
+     *
+     * @return SpringTemplateEngine
+     */
+    @Bean
+    public SpringTemplateEngine templateEngine() {
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver());
+        // 支持Spring EL表达式
+        templateEngine.setEnableSpringELCompiler(true);
+        return templateEngine;
+    }
+
+    /**
+     * Thymeleaf视图解析器
+     *
+     * @return ThymeleafViewResolver
+     */
+    @Bean
+    public ThymeleafViewResolver viewResolver() {
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine());
+        return viewResolver;
+    }
+
+    /* --- 静态资源加载配置 --- */
+
+    /**
      * 静态资源加载配置
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 静态资源处理路径和绝对路径
-        registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
+        registry.addResourceHandler("/static/**")
+                .addResourceLocations("classpath:/static/");
     }
 
     /**

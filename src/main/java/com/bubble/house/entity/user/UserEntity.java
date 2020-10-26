@@ -20,25 +20,58 @@ import java.util.List;
 public class UserEntity implements Serializable, UserDetails {
     private static final long serialVersionUID = -3364211098133184025L;
 
+    /**
+     * 用户唯一id
+     * 为一个实体生成一个唯一标识的主键
+     * - IDENTITY 主键由数据库生成, 采用数据库自增长, Oracle不支持这种方式
+     */
     @Id
-    // 为一个实体生成一个唯一标识的主键
-    // - IDENTITY 主键由数据库生成, 采用数据库自增长, Oracle不支持这种方式
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;  // 用户唯一id
+    private Long id;
+    /**
+     * 用户名
+     */
     private String name;
+    /**
+     * 密码
+     */
     private String password;
+    /**
+     * 邮箱
+     */
     private String email;
+    /**
+     * 手机号码
+     */
     @Column(name = "phone_number")
     private String phoneNumber;
-    private int status;  // 用户状态 0-正常 1-封禁
+    /**
+     * 用户状态 0-正常 1-封禁
+     */
+    private int status;
+    /**
+     * 用户账号创建时间
+     */
     @Column(name = "create_time")
-    private Date createTime;  // 用户账号创建时间
+    private Date createTime;
+    /**
+     * 上次登录时间
+     */
     @Column(name = "last_login_time")
-    private Date lastLoginTime;  // 上次登录时间
+    private Date lastLoginTime;
+    /**
+     * 上次更新记录时间
+     */
     @Column(name = "last_update_time")
-    private Date lastUpdateTime;  // 上次更新记录时间
-    private String avatar;  // 头像
+    private Date lastUpdateTime;
+    /**
+     * 头像
+     */
+    private String avatar;
 
+    /**
+     *
+     */
     @Transient
     private List<GrantedAuthority> authorityList;
 

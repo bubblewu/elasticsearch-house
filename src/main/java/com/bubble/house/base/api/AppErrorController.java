@@ -1,12 +1,12 @@
 package com.bubble.house.base.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.ServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +15,11 @@ import java.util.Map;
 
 /**
  * 自定义页面拦截器：Web错误全局配置
+ * 用于拦截项目运行中的无法预知的情况，通过统一拦截器进行异常拦截。
+ * - 页面异常拦截器：
+ * - API异常拦截器：
+ * <p>
+ * 不让Springboot自动生成whitelabel页面，由我们自定义实现
  *
  * @author wugang
  * date: 2019-11-04 17:12
@@ -25,7 +30,10 @@ import java.util.Map;
 public class AppErrorController implements ErrorController {
     private static final String ERROR_PATH = "/error";
 
-    private ErrorAttributes errorAttributes;
+    @Value("${server.error.path}")
+    private String errorPath;
+
+    private final ErrorAttributes errorAttributes;
 
     @Autowired
     public AppErrorController(ErrorAttributes errorAttributes) {
@@ -44,18 +52,22 @@ public class AppErrorController implements ErrorController {
     public String errorPageHandler(HttpServletRequest request, HttpServletResponse response) {
         int status = response.getStatus();
         switch (status) {
+            /*
+             * 返回状态码拦截处理
+             */
             case 403:
-                return "403";
+                return "status/403";
             case 404:
-                return "404";
+                return "status/404";
             case 500:
-                return "500";
+                return "status/500";
+            default:
+                return "index";
         }
-        return "index";
     }
 
     /**
-     * 接口错误处理
+     * API接口错误处理：除了Web页面之外的错误处理，如Json、Xml等
      */
     @RequestMapping(value = ERROR_PATH)
     @ResponseBody

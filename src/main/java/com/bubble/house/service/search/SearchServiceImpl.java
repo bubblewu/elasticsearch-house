@@ -390,11 +390,11 @@ public class SearchServiceImpl implements SearchService {
         }
         // 标题加权
         // should/must
-        boolQuery.should(
+        boolQuery.must(
                 QueryBuilders.matchQuery(HouseIndexConstants.TITLE, rentSearch.getKeywords())
                         .boost(2.0f)
         );
-        boolQuery.should(
+        boolQuery.must(
                 // 所有关键词匹配
                 QueryBuilders.multiMatchQuery(rentSearch.getKeywords(),
 //                        HouseIndexConstants.TITLE, // 标题
@@ -430,8 +430,8 @@ public class SearchServiceImpl implements SearchService {
                 TotalHits totalHits = hits.getTotalHits();
                 LOGGER.info("命中：{}", totalHits.value);
                 SearchHit[] searchHits = hits.getHits();
-                for (SearchHit hit : response.getHits()) {
-                    System.out.println(hit.getSourceAsMap());
+                for (SearchHit hit : searchHits) {
+//                    System.out.println(hit.getSourceAsMap());
                     String houseId = String.valueOf(hit.getSourceAsMap().get(HouseIndexConstants.HOUSE_ID));
                     houseIds.add(Long.parseLong(houseId));
                 }

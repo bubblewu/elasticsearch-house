@@ -53,7 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(urlEntryPoint())
-                .accessDeniedPage("/403");
+                .accessDeniedPage("/status/403");
 
         http.csrf().disable();
         http.headers().frameOptions().sameOrigin();
@@ -83,6 +83,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
+    @Override
     public AuthenticationManager authenticationManager() {
         AuthenticationManager authenticationManager = null;
         try {

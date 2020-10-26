@@ -6,7 +6,8 @@ spring:
   # 热部署
   devtools:
     restart:
-      enabled: true  # 热部署生效
+      # 热部署生效
+      enabled: true
       # 设置重启的目录,添加那个目录的文件需要restart
       additional-paths: src/main/java,src/main/resources
       # 不需实时加载
@@ -16,7 +17,7 @@ spring:
     mode: HTML
     suffix: .html
     prefix: classpath:/templates/
-    # dev环境为false，避免修改模版重启服务器
+    # 可以单独在dev环境设置为false，避免修改模版重启服务器
     cache: false
     encoding: UTF-8
   # 解决返回结果中文乱码问题
@@ -37,7 +38,11 @@ spring:
 server:
   error:
     whitelabel:
-      enabled: false  # 进入SpringBoot框架自动生成whitelabel页面
+      # 进入SpringBoot框架自动生成whitelabel页面
+      enabled: false
+    # error path配置
+    path: /error
+
 # 七牛云配置
 qiniu:
   access-key: GVD-MVQEoOiJOt7yNBDo-JrOKWHB33eZN2JmDFC6

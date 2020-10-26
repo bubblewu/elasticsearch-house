@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-//import com.bubble.house.dao.UserRepository;
-
 /**
  * 用户表测试用例
  *

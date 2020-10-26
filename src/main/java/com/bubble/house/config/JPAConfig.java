@@ -23,7 +23,7 @@ import javax.sql.DataSource;
  **/
 @Configuration
 @EnableJpaRepositories(basePackages = "com.bubble.house.repository")
-//// 允许事务管理
+// 允许事务管理
 @EnableTransactionManagement
 public class JPAConfig {
 
@@ -49,8 +49,9 @@ public class JPAConfig {
 //        return dataSource;
 //    }
 
+
     /**
-     * 建立数据源
+     * 建立数据源：基于配置文件
      */
     @Bean
     @ConfigurationProperties(prefix = "spring.datasource")

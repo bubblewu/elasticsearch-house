@@ -70,39 +70,11 @@
     </Appenders>
 
     <Loggers>
-        <!--        <logger name="com.huoli.product.recommend.controller.HotelInfoExtractController" level="INFO" additivity="false">-->
-        <!--            <appender-ref ref="HotelController"/>-->
-        <!--        </logger>-->
-        <!--        <logger name="com.alicp.jetcache" level="INFO" additivity="false">-->
-        <!--            <appender-ref ref="RollingFileJetCache"/>-->
-        <!--        </logger>-->
-
-        <!--        <logger name="org.mongodb" level="ERROR"/>-->
-
-        <!--        <root level="all">-->
-        <!--            <appenderRef ref="Console"/>-->
-        <!--            <appenderRef ref="RollingFileInfo"/>-->
-        <!--            <appenderRef ref="RollingFileError"/>-->
-        <!--        </root>-->
-        <!--        异步日志-->
-
-        <!--        <logger name="com.alicp.jetcache" level="INFO" additivity="false">-->
-        <!--            <appender-ref ref="RollingFileJetCache"/>-->
-        <!--        </logger>-->
-        <!--        <AsyncLogger name="com.bubble.product.recommend.common.kafka.KafkaProducer" level="INFO"-->
-        <!--                     additivity="false" includeLocation="true">-->
-        <!--            <appender-ref ref="KafkaProducer"/>-->
-        <!--        </AsyncLogger>-->
-
-        <!--        <logger name="org.mongodb" level="ERROR"/>-->
-<!--        <logger name="org.apache" level="INFO"/>-->
-<!--        <logger name="org.springframework" level="INFO"/>-->
+        <logger name="org.springframework" level="INFO"/>
         <logger name="com.zaxxer" level="INFO"/>
-<!--        <logger name="org.hibernate" level="INFO"/>-->
-<!--        <logger name="org.thymeleaf" level="INFO"/>-->
-        <logger name="io" level="INFO"/>
-        <logger name="org" level="INFO"/>
-
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="org.hibernate.sql" level="DEBUG"/>
+        <logger name="org.thymeleaf" level="INFO"/>
         <asyncRoot level="all" includeLocation="true">
             <appenderRef ref="Console"/>
             <appenderRef ref="RollingFileInfo"/>

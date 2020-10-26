@@ -3,7 +3,7 @@ package com.bubble.house.base.api;
 import java.io.Serializable;
 
 /**
- * APi数据格式标准
+ * APi数据标准格式封装
  *
  * @author wugang
  * date: 2019-11-04 16:33
@@ -11,9 +11,21 @@ import java.io.Serializable;
 public class ApiResponse implements Serializable {
     private static final long serialVersionUID = 2500176763890028056L;
 
+    /**
+     * HTTP状态码
+     */
     private int code;
+    /**
+     * HTTP自定义请求响应信息
+     */
     private String msg;
+    /**
+     * 当前API请求的目标数据
+     */
     private Object data;
+    /**
+     * 表示数据集是否还有更多的信息
+     */
     private boolean more;
 
     public ApiResponse() {

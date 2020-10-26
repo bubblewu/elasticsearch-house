@@ -13,7 +13,6 @@ import java.util.List;
 
 /**
  * 在开发过程中经常会有一个需求，就是类型转换 (把一个类转成另一个类)
- * modelmapper就是一个提高生产力的工具
  *
  * @author wugang
  * date: 2019-11-12 11:27

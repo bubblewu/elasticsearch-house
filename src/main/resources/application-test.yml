@@ -1,21 +1,8 @@
-# 基于H2数据库
-# H2是一个用Java开发的嵌入式数据库，它本身只是一个类库，可以直接嵌入到应用项目中。
 spring:
   datasource:
-    initialization-mode: always
-    driver-class-name: org.h2.Driver
-    jdbc-url: jdbc:h2:/Users/wugang/env/h2/data/elasticsearch_house;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
-    schema: classpath:db/h2/schema.sql
-    data: classpath:db/h2/data.sql
-    username: sa
-    password:
-
-  jpa:
-    database: h2
-    hibernate:
-      ddl-auto: create
-    show-sql: true
-#  h2:
-#    console:
-#      path: /Users/wugang/env/h2/data
-#      enabled: true
+    hikari:
+      driver-class-name: org.h2.Driver
+    # 内存模式
+    url: jdbc:h2:mem:test
+    schema: classpath:db/schema.sql
+    data: classpath:db/data

@@ -154,11 +154,11 @@ public class AdminController {
     public String houseEditPage(@RequestParam(value = "id") Long id, Model model) {
         LOGGER.debug("进入房源信息编辑页面：[admin/house/edit]");
         if (id == null || id < 1) {
-            return "404";
+            return "status/404";
         }
         ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(id);
         if (!serviceResult.isSuccess()) {
-            return "404";
+            return "status/404";
         }
         HouseDTO result = serviceResult.getResult();
         model.addAttribute("house", result);

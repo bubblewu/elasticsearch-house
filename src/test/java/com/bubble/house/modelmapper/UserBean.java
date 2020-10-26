@@ -1,6 +1,8 @@
 package com.bubble.house.modelmapper;
 
 /**
+ * 用户
+ *
  * @author wugang
  * date: 2019-11-12 11:30
  **/

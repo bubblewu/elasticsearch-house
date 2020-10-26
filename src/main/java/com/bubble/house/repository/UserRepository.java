@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 /**
  * JPA操作类：用户接口
+ * 继承CrudRepository，传入类和主键的类型
  *
  * @author wugang
  * date: 2019-11-01 18:12

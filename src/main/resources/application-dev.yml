@@ -6,18 +6,22 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:3306/elasticsearch_house?useUnicode=true&characterEncoding=utf-8&useSSL=false
     jdbc-url: jdbc:mysql://127.0.0.1:3306/elasticsearch_house?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
     password: root
   # JPA配置
   jpa:
     database: mysql
-    show-sql: true  # 控制台输出格式化的JPA执行过程中的SQL，方便调试开发
+    # 控制台输出格式化的JPA执行过程中的SQL，方便调试开发
+    show-sql: true
     hibernate:
-      ddl-auto: validate  # 每次加载hibernate时，验证创建数据库表结构，只会和数据库中的表进行比较，不会创建新表，但是会插入新值。
+      # 每次加载hibernate时，验证创建数据库表结构，只会和数据库中的表进行比较，不会创建新表，但是会插入新值。
+      ddl-auto: validate
     open-in-view: false
   session:
-    store-type: redis  # session会话存储类型
+    # session会话存储类型
+    store-type: none # redis
   # Redis配置
   redis:
     host: 127.0.0.1
@@ -26,12 +30,16 @@ spring:
     timeout: 3000
     jedis:
       pool:
-        min-idle: 1  # 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止
-        max-wait: 60000 # 最大等待值
+        # 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止
+        min-idle: 1
+        # 最大等待值
+        max-wait: 60000
   kafka:
     bootstrap-servers: 127.0.0.1:9092
     consumer:
       group-id: es-house
+    listener:
+      missing-topics-fatal: false
 
 elasticsearch:
   host: 127.0.0.1

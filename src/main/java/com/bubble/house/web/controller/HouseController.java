@@ -143,7 +143,8 @@ public class HouseController {
         model.addAttribute("houses", serviceMultiResult.getResult());
 
         if (rentSearch.getRegionEnName() == null) {
-            rentSearch.setRegionEnName("*"); // 匹配所有区域
+            // 匹配所有区域
+            rentSearch.setRegionEnName("*");
         }
 
         model.addAttribute("searchBody", rentSearch);
@@ -181,11 +182,11 @@ public class HouseController {
     public String show(@PathVariable(value = "id") Long houseId,
                        Model model) {
         if (houseId <= 0) {
-            return "404";
+            return "status/404";
         }
         ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(houseId);
         if (!serviceResult.isSuccess()) {
-            return "404";
+            return "status/404";
         }
 
         HouseDTO houseDTO = serviceResult.getResult();
