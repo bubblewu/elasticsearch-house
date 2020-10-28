@@ -8,10 +8,10 @@ import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.InputStream;
 
@@ -22,19 +22,46 @@ import java.io.InputStream;
  * date: 2019-11-05 14:36
  **/
 @Service
-public class QiNiuServiceImpl implements QiNiuService {
+public class QiNiuServiceImpl implements QiNiuService, InitializingBean {
     private final static Logger LOGGER = LoggerFactory.getLogger(QiNiuServiceImpl.class);
 
+    /**
+     * 图片存储空间名字
+     */
     @Value("${qiniu.bucket}")
     private String bucket;
+    /**
+     * 返回结果（遵循七牛云定义的规范）
+     */
     private StringMap putPolicy;
 
+    /**
+     * 上传实例
+     */
     private final UploadManager uploadManager;
+    /**
+     * 空间管理实例
+     */
     private final BucketManager bucketManager;
+    /**
+     * 用户认证实例
+     */
     private final Auth auth;
 
-    @PostConstruct
-    public void init() {
+    /**
+     * afterPropertiesSet方法，初始化bean的时候执行，可以针对某个具体的bean进行配置。
+     * afterPropertiesSet 必须实现 InitializingBean接口。实现 InitializingBean接口必须实现afterPropertiesSet方法。
+     * <p>
+     * 执行顺序：
+     * afterPropertiesSet 和init-method之间的执行顺序是afterPropertiesSet 先执行，init-method 后执行。
+     * 从BeanPostProcessor的作用，可以看出最先执行的是postProcessBeforeInitialization，
+     * 然后是afterPropertiesSet，然后是init-method，
+     * 然后是postProcessAfterInitialization
+     *
+     * @throws Exception 异常
+     */
+    @Override
+    public void afterPropertiesSet() throws Exception {
         this.putPolicy = new StringMap();
         putPolicy.put("returnBody", "{\"key\":\"$(key)\",\"hash\":\"$(etag)\",\"bucket\":\"$(bucket)\",\"width\":$(imageInfo.width), \"height\":${imageInfo.height}}");
     }

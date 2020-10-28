@@ -1,6 +1,5 @@
 package com.bubble.house.web.controller.admin;
 
-import com.alibaba.fastjson.JSONObject;
 import com.bubble.house.base.api.ApiDataTableResponse;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
@@ -16,6 +15,7 @@ import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import com.qiniu.http.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +52,14 @@ public class AdminController {
     private final QiNiuService qiNiuService;
     private final AddressService addressService;
     private final HouseService houseService;
+    private final Gson gson;
 
-    public AdminController(QiNiuService qiNiuService, AddressService addressService, HouseService houseService) {
+    public AdminController(QiNiuService qiNiuService, AddressService addressService,
+                           HouseService houseService, Gson gson) {
         this.qiNiuService = qiNiuService;
         this.addressService = addressService;
         this.houseService = houseService;
+        this.gson = gson;
     }
 
     /**
@@ -229,7 +232,7 @@ public class AdminController {
             InputStream inputStream = file.getInputStream();
             Response response = qiNiuService.uploadFile(inputStream);
             if (response.isOK()) {
-                QiNiuEntity qiNiuEntity = JSONObject.parseObject(response.bodyString(), QiNiuEntity.class);
+                QiNiuEntity qiNiuEntity = gson.fromJson(response.bodyString(), QiNiuEntity.class);
                 return ApiResponse.ofSuccess(qiNiuEntity);
             } else {
                 return ApiResponse.ofMessage(response.statusCode, response.getInfo());

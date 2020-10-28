@@ -45,9 +45,9 @@ server:
 
 # 七牛云配置
 qiniu:
-  access-key: GVD-MVQEoOiJOt7yNBDo-JrOKWHB33eZN2JmDFC6
-  secret-key: sHnl57ZXtStejn7GgY5VF3lnm1CxMJ3hcayexAWz
-  bucket: lakers
+  access-key: fhNhMp75E1uiaySLQXqOqnWQ2AGZ_pYpeB8U5gxN
+  secret-key: Nt0RRwY4fYdVqBH8qTdKgF-w45sPHbeSpvIBNF8c
+  bucket: house
   cdn:
       prefix: http://7xo6gy.com1.z0.glb.clouddn.com/
 # 阿里云短信配置

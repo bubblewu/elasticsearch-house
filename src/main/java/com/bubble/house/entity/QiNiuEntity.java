@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 /**
  * 七牛云服务
+ * 参考：https://developer.qiniu.com/kodo/sdk/1239/java
  *
  * @author wugang
  * date: 2019-11-05 15:12

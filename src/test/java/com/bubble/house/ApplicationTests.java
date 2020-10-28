@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
  * date: 2019-11-01 18:17
  **/
 @SpringBootTest
-@ActiveProfiles("test")
+//@ActiveProfiles("test")
 @Configuration
 public class ApplicationTests {
 }
