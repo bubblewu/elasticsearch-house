@@ -1,12 +1,12 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.entity.dto.HouseDTO;
-import com.bubble.house.entity.param.DatatableSearchParam;
-import com.bubble.house.entity.param.HouseParam;
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
-import com.bubble.house.entity.search.MapSearchEntity;
+import com.bubble.house.web.dto.HouseDTO;
+import com.bubble.house.web.param.DatatableSearchParam;
+import com.bubble.house.web.param.HouseParam;
+import com.bubble.house.web.param.RentSearchParam;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
+import com.bubble.house.web.param.MapSearchParam;
 
 /**
  * House相关服务接口
@@ -69,12 +69,12 @@ public interface HouseService {
     /**
      * 全地图查询
      */
-    ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch);
+    ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchParam mapSearch);
 
     /**
      * 精确范围数据查询
      */
-    ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch);
+    ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchParam mapSearch);
 
 
 }

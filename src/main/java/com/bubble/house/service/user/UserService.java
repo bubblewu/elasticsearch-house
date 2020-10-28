@@ -1,7 +1,7 @@
 package com.bubble.house.service.user;
 
-import com.bubble.house.entity.dto.UserDTO;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.web.dto.UserDTO;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.entity.user.UserEntity;
 
 /**

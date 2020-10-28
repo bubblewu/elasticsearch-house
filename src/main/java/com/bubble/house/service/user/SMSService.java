@@ -1,6 +1,6 @@
 package com.bubble.house.service.user;
 
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 
 /**
  * SMS短信服务：验证码服务

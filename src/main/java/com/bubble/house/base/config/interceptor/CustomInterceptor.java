@@ -1,4 +1,4 @@
-package com.bubble.house.config.interceptor;
+package com.bubble.house.base.config.interceptor;
 
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;

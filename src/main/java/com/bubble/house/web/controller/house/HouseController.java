@@ -2,17 +2,17 @@ package com.bubble.house.web.controller.house;
 
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
-import com.bubble.house.entity.dto.HouseDTO;
-import com.bubble.house.entity.dto.UserDTO;
+import com.bubble.house.web.dto.HouseDTO;
+import com.bubble.house.web.dto.UserDTO;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.web.param.MapSearchParam;
+import com.bubble.house.web.param.RentSearchParam;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
-import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.entity.search.RentValueBlockEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
@@ -236,7 +236,7 @@ public class HouseController {
      */
     @GetMapping("rent/house/map/houses")
     @ResponseBody
-    public ApiResponse rentMapHouses(@ModelAttribute MapSearchEntity mapSearch) {
+    public ApiResponse rentMapHouses(@ModelAttribute MapSearchParam mapSearch) {
         if (mapSearch.getCityEnName() == null) {
             return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), "必须选择城市");
         }

@@ -1,4 +1,4 @@
-package com.bubble.house.base;
+package com.bubble.house.base.search;
 
 import com.google.common.collect.Sets;
 import org.springframework.data.domain.Sort;

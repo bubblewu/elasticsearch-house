@@ -1,17 +1,17 @@
 package com.bubble.house.service.search;
 
-import com.bubble.house.base.HouseSort;
+import com.bubble.house.base.search.HouseSort;
 import com.bubble.house.base.search.HouseIndexConstants;
 import com.bubble.house.base.search.HouseIndexMessage;
 import com.bubble.house.base.search.HouseIndexTemplate;
 import com.bubble.house.base.search.HouseSuggest;
 import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.entity.house.*;
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.web.param.RentSearchParam;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
-import com.bubble.house.entity.search.MapSearchEntity;
+import com.bubble.house.web.param.MapSearchParam;
 import com.bubble.house.entity.search.RentValueBlockEntity;
 import com.bubble.house.repository.CityRepository;
 import com.bubble.house.repository.HouseDetailRepository;
@@ -634,7 +634,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public ServiceMultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch) {
+    public ServiceMultiResultEntity<Long> mapQuery(MapSearchParam mapSearch) {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         boolQuery.filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, mapSearch.getCityEnName()));
 

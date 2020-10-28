@@ -1,4 +1,4 @@
-package com.bubble.house.entity.search;
+package com.bubble.house.web.param;
 
 import java.io.Serializable;
 
@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author wugang
  * date: 2019-11-08 18:20
  **/
-public class MapSearchEntity implements Serializable {
+public class MapSearchParam implements Serializable {
     private static final long serialVersionUID = -8923047373369814190L;
 
     private String cityEnName;

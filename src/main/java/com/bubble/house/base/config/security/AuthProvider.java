@@ -1,4 +1,4 @@
-package com.bubble.house.config.security;
+package com.bubble.house.base.config.security;
 
 import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.service.user.UserService;

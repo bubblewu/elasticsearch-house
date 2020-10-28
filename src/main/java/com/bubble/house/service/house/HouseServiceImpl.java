@@ -1,20 +1,16 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.base.HouseSort;
-import com.bubble.house.base.ToolKits;
-import com.bubble.house.entity.dto.HouseDTO;
-import com.bubble.house.entity.dto.HouseDetailDTO;
-import com.bubble.house.entity.dto.HousePictureDTO;
+import com.bubble.house.base.search.HouseSort;
+import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.house.*;
-import com.bubble.house.entity.param.DatatableSearchParam;
-import com.bubble.house.entity.param.HouseParam;
-import com.bubble.house.entity.param.PhotoParam;
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
-import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.repository.*;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.service.search.SearchService;
+import com.bubble.house.web.dto.HouseDTO;
+import com.bubble.house.web.dto.HouseDetailDTO;
+import com.bubble.house.web.dto.HousePictureDTO;
+import com.bubble.house.web.param.*;
 import com.google.common.collect.Lists;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -94,7 +90,7 @@ public class HouseServiceImpl implements HouseService {
         house.setCreateTime(now);
         house.setLastUpdateTime(now);
         // 当前操作用户ID
-        house.setAdminId(ToolKits.getLoginUserId());
+        house.setAdminId(LoginUserUtils.getLoginUserId());
         house = this.houseRepository.save(house);
 
         detail.setHouseId(house.getId());
@@ -191,7 +187,7 @@ public class HouseServiceImpl implements HouseService {
         // 添加搜索排序功能
         Specification<HouseEntity> specification = (root, query, cb) -> {
             // 只能查询当前用户下未删除的房源信息
-            Predicate predicate = cb.equal(root.get("adminId"), ToolKits.getLoginUserId());
+            Predicate predicate = cb.equal(root.get("adminId"), LoginUserUtils.getLoginUserId());
             predicate = cb.and(predicate, cb.notEqual(root.get("status"), HouseStatus.DELETED.getValue()));
 
             if (searchBody.getCity() != null) {
@@ -252,8 +248,8 @@ public class HouseServiceImpl implements HouseService {
         result.setPictures(pictureDTOS);
         result.setTags(tagList);
 
-        if (ToolKits.getLoginUserId() > 0) { // 已登录用户
-            HouseSubscribeEntity subscribe = subscribeRepository.findByHouseIdAndUserId(house.getId(), ToolKits.getLoginUserId());
+        if (LoginUserUtils.getLoginUserId() > 0) { // 已登录用户
+            HouseSubscribeEntity subscribe = subscribeRepository.findByHouseIdAndUserId(house.getId(), LoginUserUtils.getLoginUserId());
             if (subscribe != null) {
                 result.setSubscribeStatus(subscribe.getStatus());
             }
@@ -483,7 +479,7 @@ public class HouseServiceImpl implements HouseService {
 
 
     @Override
-    public ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch) {
+    public ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchParam mapSearch) {
         ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
 
         if (serviceResult.getTotal() == 0) {
@@ -494,7 +490,7 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch) {
+    public ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchParam mapSearch) {
         ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
         if (serviceResult.getTotal() == 0) {
             return new ServiceMultiResultEntity<>(0, Lists.newArrayList());

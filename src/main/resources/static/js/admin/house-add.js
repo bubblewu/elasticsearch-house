@@ -1,4 +1,3 @@
-
 $(function () {
     // 自定义地址选择器
     var $city = $("#city"),
@@ -11,7 +10,7 @@ $(function () {
     // 二级联动 地区 以及 地铁线路 动态变动
     $city.change(function () {
         var selectedVal = $(this).val();
-        if (typeof(selectedVal) == 'undefined' || selectedVal == "") {
+        if (typeof (selectedVal) == 'undefined' || selectedVal == "") {
             layer.msg('请选择所在城市！', {icon: 5, time: 2000});
             return;
         }
@@ -23,7 +22,7 @@ $(function () {
     // 地铁站三级联动
     $subwayLine.change(function () {
         var selectedVal = $(this).val();
-        if (typeof(selectedVal) == 'undefined' || selectedVal == "") {
+        if (typeof (selectedVal) == 'undefined' || selectedVal == "") {
             layer.msg('请选择地铁线路！', {icon: 5, time: 2000});
             return;
         }
@@ -33,14 +32,14 @@ $(function () {
 
     var tags = new Set();
     $('#tags span').on('click', function () {
-       var tag = $(this).text();
-       if (tags.has(tag)) {
-           $(this).removeClass('label-success').addClass('label-default').css('border', 'none');
-           tags.delete(tag);
-       } else {
-           $(this).removeClass('label-default').addClass('label-success').css('border', 'solid black 1px');
-           tags.add(tag);
-       }
+        var tag = $(this).text();
+        if (tags.has(tag)) {
+            $(this).removeClass('label-success').addClass('label-default').css('border', 'none');
+            tags.delete(tag);
+        } else {
+            $(this).removeClass('label-default').addClass('label-success').css('border', 'solid black 1px');
+            tags.add(tag);
+        }
     });
 
     //表单验证
@@ -115,7 +114,7 @@ $(function () {
         submitHandler: function (form) {
             var cover = $(form).find("input:radio[name='cover']:checked").val();
 
-            if (cover == null || typeof(cover) == "undefined" || cover == "" || cover.length < 1) {
+            if (cover == null || typeof (cover) == "undefined" || cover == "" || cover.length < 1) {
                 layer.msg('至少要上传一个封面！', {icon: 5, time: 2000});
                 return false;
             }
@@ -123,7 +122,7 @@ $(function () {
             $(form).find('input.house-tag').remove();
             var index = 0;
             tags.forEach(function (tag) {
-               $(form).append('<input class="house-tag" name="tags[' + index++ + ']" type="hidden" value="'+ tag + '"/>');
+                $(form).append('<input class="house-tag" name="tags[' + index++ + ']" type="hidden" value="' + tag + '"/>');
             });
 
             $(form).ajaxSubmit({

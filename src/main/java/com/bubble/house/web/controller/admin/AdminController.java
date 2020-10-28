@@ -4,13 +4,13 @@ import com.bubble.house.base.api.ApiDataTableResponse;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
 import com.bubble.house.entity.QiNiuEntity;
-import com.bubble.house.entity.dto.HouseDTO;
-import com.bubble.house.entity.dto.HouseDetailDTO;
+import com.bubble.house.web.dto.HouseDTO;
+import com.bubble.house.web.dto.HouseDetailDTO;
 import com.bubble.house.entity.house.*;
-import com.bubble.house.entity.param.DatatableSearchParam;
-import com.bubble.house.entity.param.HouseParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.web.param.DatatableSearchParam;
+import com.bubble.house.web.param.HouseParam;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
@@ -124,6 +124,7 @@ public class AdminController {
     @GetMapping("admin/add/house")
     public String addHousePage() {
         LOGGER.debug("进入新增房源页面：[admin/house-add]");
+        // 应用于static/js/admin/house-add.js
         return "admin/house-add";
     }
 
@@ -249,7 +250,6 @@ public class AdminController {
     @ResponseBody
     public ApiResponse removeHousePhoto(@RequestParam(value = "id") Long id) {
         LOGGER.debug("进入图片删除接口：[admin/house/photo]");
-
         ServiceResultEntity result = this.houseService.removePhoto(id);
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);

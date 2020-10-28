@@ -1,12 +1,12 @@
 package com.bubble.house.service.user;
 
-import com.bubble.house.base.ToolKits;
-import com.bubble.house.entity.dto.UserDTO;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.user.RoleEntity;
 import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.repository.RoleRepository;
 import com.bubble.house.repository.UserRepository;
+import com.bubble.house.service.ServiceResultEntity;
+import com.bubble.house.web.dto.UserDTO;
 import com.google.common.collect.Lists;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -120,7 +120,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public ServiceResultEntity modifyUserProfile(String profile, String value) {
-        Long userId = ToolKits.getLoginUserId();
+        Long userId = LoginUserUtils.getLoginUserId();
         if (profile == null || profile.isEmpty()) {
             return new ServiceResultEntity(false, "属性不可以为空");
         }

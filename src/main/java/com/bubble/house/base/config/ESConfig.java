@@ -1,4 +1,4 @@
-package com.bubble.house.config;
+package com.bubble.house.base.config;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;

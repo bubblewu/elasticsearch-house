@@ -1,4 +1,4 @@
-package com.bubble.house.config;
+package com.bubble.house.base.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;

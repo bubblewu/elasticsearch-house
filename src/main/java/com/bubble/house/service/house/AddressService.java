@@ -1,12 +1,12 @@
 package com.bubble.house.service.house;
 
 import com.bubble.house.entity.BaiDuMapEntity;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceMultiResultEntity;
 import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 
 import java.util.List;
 import java.util.Map;

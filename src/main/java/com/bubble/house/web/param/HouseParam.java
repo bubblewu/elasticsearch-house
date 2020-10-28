@@ -1,4 +1,4 @@
-package com.bubble.house.entity.param;
+package com.bubble.house.web.param;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;

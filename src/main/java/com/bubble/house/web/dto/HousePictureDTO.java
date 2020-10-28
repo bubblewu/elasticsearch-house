@@ -1,4 +1,4 @@
-package com.bubble.house.entity.dto;
+package com.bubble.house.web.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

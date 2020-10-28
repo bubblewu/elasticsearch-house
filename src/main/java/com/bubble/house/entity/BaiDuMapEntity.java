@@ -13,10 +13,14 @@ import java.io.Serializable;
 public class BaiDuMapEntity implements Serializable {
     private static final long serialVersionUID = -5758696463077606067L;
 
-    // 经度
+    /**
+     * 经度
+     */
     @JsonProperty("lon")
     private double longitude;
-    // 纬度
+    /**
+     * 纬度
+     */
     @JsonProperty("lat")
     private double latitude;
 

@@ -1,7 +1,7 @@
 package com.bubble.house;
 
 import com.bubble.house.entity.BaiDuMapEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.service.house.AddressService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

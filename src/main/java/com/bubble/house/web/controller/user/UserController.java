@@ -1,9 +1,9 @@
 package com.bubble.house.web.controller.user;
 
-import com.bubble.house.base.LoginUserUtil;
+import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.SubscribeService;
 import com.bubble.house.service.user.UserService;
@@ -58,7 +58,7 @@ public class UserController {
         if (value.isEmpty()) {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
-        if ("email".equals(profile) && !LoginUserUtil.checkEmail(value)) {
+        if ("email".equals(profile) && !LoginUserUtils.checkEmail(value)) {
             return ApiResponse.ofMessage(HttpStatus.SC_BAD_REQUEST, "不支持的邮箱格式");
         }
         ServiceResultEntity result = userService.modifyUserProfile(profile, value);

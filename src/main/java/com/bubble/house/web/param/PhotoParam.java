@@ -1,4 +1,4 @@
-package com.bubble.house.entity.param;
+package com.bubble.house.web.param;
 
 import java.io.Serializable;
 

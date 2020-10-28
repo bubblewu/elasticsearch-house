@@ -1,6 +1,6 @@
-package com.bubble.house.config.security;
+package com.bubble.house.base.config.security;
 
-import com.bubble.house.base.ToolKits;
+import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.service.user.SMSService;
 import com.bubble.house.service.user.UserService;
@@ -44,7 +44,7 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
             return super.attemptAuthentication(request, response);
         }
         String telephone = request.getParameter("telephone");
-        if (Strings.isNullOrEmpty(telephone) || !ToolKits.checkTelephone(telephone)) {
+        if (Strings.isNullOrEmpty(telephone) || !LoginUserUtils.checkTelephone(telephone)) {
             LOGGER.error("联系方式输入有误或非法");
             throw new BadCredentialsException("Wrong telephone number");
         }

@@ -1,10 +1,10 @@
 package com.bubble.house.service.search;
 
-import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.ServiceMultiResultEntity;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.web.param.RentSearchParam;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
-import com.bubble.house.entity.search.MapSearchEntity;
+import com.bubble.house.web.param.MapSearchParam;
 
 import java.util.List;
 
@@ -55,6 +55,6 @@ public interface SearchService {
     /**
      * 精确范围数据查询
      */
-    ServiceMultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch);
+    ServiceMultiResultEntity<Long> mapQuery(MapSearchParam mapSearch);
 
 }

@@ -1,10 +1,10 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.base.LoginUserUtil;
+import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.house.HouseEntity;
 import com.bubble.house.entity.house.HouseSubscribeEntity;
 import com.bubble.house.entity.house.HouseSubscribeStatus;
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.repository.HouseRepository;
 import com.bubble.house.repository.HouseSubscribeRepository;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class SubscribeServiceImpl implements SubscribeService {
     @Override
     @Transactional
     public ServiceResultEntity addSubscribeOrder(Long houseId) {
-        Long userId = LoginUserUtil.getLoginUserId();
+        Long userId = LoginUserUtils.getLoginUserId();
         HouseSubscribeEntity subscribe = subscribeRepository.findByHouseIdAndUserId(houseId, userId);
         if (subscribe != null) {
             return new ServiceResultEntity(false, "已加入预约");

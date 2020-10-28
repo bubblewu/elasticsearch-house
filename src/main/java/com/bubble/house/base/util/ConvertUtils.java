@@ -1,4 +1,4 @@
-package com.bubble.house.base;
+package com.bubble.house.base.util;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;

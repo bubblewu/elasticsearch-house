@@ -1,9 +1,9 @@
-package com.bubble.house.config;
+package com.bubble.house.base.config;
 
-import com.bubble.house.config.security.AuthFilter;
-import com.bubble.house.config.security.AuthProvider;
-import com.bubble.house.config.security.LoginAuthFailHandler;
-import com.bubble.house.config.security.LoginUrlEntryPoint;
+import com.bubble.house.base.config.security.AuthFilter;
+import com.bubble.house.base.config.security.AuthProvider;
+import com.bubble.house.base.config.security.LoginAuthFailHandler;
+import com.bubble.house.base.config.security.LoginUrlEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;

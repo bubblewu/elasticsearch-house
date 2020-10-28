@@ -1,4 +1,4 @@
-package com.bubble.house.base;
+package com.bubble.house.base.util;
 
 import com.bubble.house.entity.user.UserEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -6,21 +6,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.regex.Pattern;
 
 /**
- * 工具
+ * 用户登录处理工具
  *
  * @author wugang
- * date: 2019-11-05 19:10
+ * date: 2020-10-27 17:56
  **/
-public class ToolKits {
-
-    private static final String PHONE_REGEX = "^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0,5-9]))\\d{8}$";
+public class LoginUserUtils {
+    private static final String PHONE_REGEX = "^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(17[0,5-9])|(18[0,5-9]))\\d{8}$";
     private static final Pattern PHONE_PATTERN = Pattern.compile(PHONE_REGEX);
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
     private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
     public static UserEntity load() {
-        // 获取认证用户
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserEntity) {
             return (UserEntity) principal;
@@ -30,17 +28,14 @@ public class ToolKits {
 
     public static Long getLoginUserId() {
         UserEntity user = load();
-        if (user == null) {
-            return -1L;
-        }
-        return user.getId();
+        return user == null ? -1L : user.getId();
     }
 
     /**
      * 验证手机号码
      * <p>
      * 移动号码段:139、138、137、136、135、134、150、151、152、157、158、159、182、183、187、188、147
-     * 联通号码段:130、131、132、136、185、186、145
+     * 联通号码段:130、131、132、136、185、186、145、175、185
      * 电信号码段:133、153、180、189
      *
      * @param target 目标号码

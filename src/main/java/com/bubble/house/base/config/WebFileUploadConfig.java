@@ -1,4 +1,4 @@
-package com.bubble.house.config;
+package com.bubble.house.base.config;
 
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.Region;

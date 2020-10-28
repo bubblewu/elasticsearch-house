@@ -1,4 +1,4 @@
-package com.bubble.house.entity.dto;
+package com.bubble.house.web.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;

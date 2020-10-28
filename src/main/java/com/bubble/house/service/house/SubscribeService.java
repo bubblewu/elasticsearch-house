@@ -1,6 +1,6 @@
 package com.bubble.house.service.house;
 
-import com.bubble.house.entity.result.ServiceResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
 
 /**
  * 预约管理服务

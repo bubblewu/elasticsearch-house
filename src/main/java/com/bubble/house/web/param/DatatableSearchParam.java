@@ -1,4 +1,4 @@
-package com.bubble.house.entity.param;
+package com.bubble.house.web.param;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -24,7 +24,10 @@ public class DatatableSearchParam implements Serializable {
     private int start;
     private int length;
 
-    private Integer status; // house中的状态码
+    /**
+     * house中的状态码
+     */
+    private Integer status;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date createTimeMin;
@@ -33,8 +36,14 @@ public class DatatableSearchParam implements Serializable {
 
     private String city;
     private String title;
-    private String direction; // 升序/降序
-    private String orderBy; // 排序
+    /**
+     * 升序/降序
+     */
+    private String direction;
+    /**
+     * 排序
+     */
+    private String orderBy;
 
     public int getDraw() {
         return draw;
