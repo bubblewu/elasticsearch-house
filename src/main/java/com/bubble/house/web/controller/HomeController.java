@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * 首页
+ * 首页和功能性页面接口定义
  *
  * @author wugang
  * date: 2019-11-04 14:45
@@ -48,9 +48,11 @@ public class HomeController {
         return "status/500";
     }
 
+    /**
+     * 登出 注销页面
+     */
     @GetMapping("/logout/page")
     public String logoutPage() {
-        // 登出页面
         return "logout";
     }
 

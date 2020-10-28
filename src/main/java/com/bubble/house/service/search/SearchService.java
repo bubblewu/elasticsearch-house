@@ -1,8 +1,8 @@
 package com.bubble.house.service.search;
 
 import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
 import com.bubble.house.entity.search.MapSearchEntity;
 
@@ -29,32 +29,32 @@ public interface SearchService {
     /**
      * 查询房源接口
      */
-    MultiResultEntity<Long> query(RentSearchParam rentSearch);
+    ServiceMultiResultEntity<Long> query(RentSearchParam rentSearch);
 
     /**
      * 获取补全建议关键词
      */
-    ResultEntity<List<String>> suggest(String prefix);
+    ServiceResultEntity<List<String>> suggest(String prefix);
 
     /**
      * 聚合特定小区的房间数
      */
-    ResultEntity<Long> aggregateDistrictHouse(String cityEnName, String regionEnName, String district);
+    ServiceResultEntity<Long> aggregateDistrictHouse(String cityEnName, String regionEnName, String district);
 
     /**
      * 聚合城市数据
      */
-    MultiResultEntity<HouseBucketEntity> mapAggregate(String cityEnName);
+    ServiceMultiResultEntity<HouseBucketEntity> mapAggregate(String cityEnName);
 
     /**
      * 城市级别查询
      */
-    MultiResultEntity<Long> mapQuery(String cityEnName, String orderBy,
-                                     String orderDirection, int start, int size);
+    ServiceMultiResultEntity<Long> mapQuery(String cityEnName, String orderBy,
+                                            String orderDirection, int start, int size);
 
     /**
      * 精确范围数据查询
      */
-    MultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch);
+    ServiceMultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch);
 
 }

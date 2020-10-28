@@ -1,7 +1,7 @@
 package com.bubble.house;
 
 import com.bubble.house.entity.BaiDuMapEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.service.house.AddressService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ public class AddressServiceTests extends ApplicationTests {
     public void testGetMapLocation() {
         String city = "北京";
         String address = "望京SOHO";
-        ResultEntity<BaiDuMapEntity> result = addressService.getBaiDuMapLocation(city, address);
+        ServiceResultEntity<BaiDuMapEntity> result = addressService.getBaiDuMapLocation(city, address);
         System.out.println(result.getResult().getLongitude());
         System.out.println(result.getResult().getLatitude());
 

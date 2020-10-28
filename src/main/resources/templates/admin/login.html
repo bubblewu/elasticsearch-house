@@ -1,12 +1,12 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
     <title>房搜搜-后台登录系统</title>
 
     <!--- CSS --->
-    <link rel="stylesheet" href="/static/css/admin/login-style.css" type="text/css" />
+    <link rel="stylesheet" href="/static/css/admin/login-style.css" type="text/css"/>
 
 
     <!--- Javascript libraries (jQuery and Selectivizr) used for the custom checkbox --->
@@ -14,7 +14,9 @@
     <!--[if (gte IE 6)&(lte IE 8)]>
     <script type="text/javascript" src="/static/lib/jquery/1.9.1/jquery.js"></script>
     <script type="text/javascript" src="/static/js/admin/selectivizr.js"></script>
-    <noscript><link rel="stylesheet" href="/static/css/admin/login-fallback.css" /></noscript>
+    <noscript>
+        <link rel="stylesheet" href="/static/css/admin/login-fallback.css"/>
+    </noscript>
     <![endif]-->
 
 </head>
@@ -23,7 +25,7 @@
 <div id="container">
     <form action="#" th:action="@{/login}" method="post">
         <div class="login">管理员登录</div>
-        <div th:if="${param.error}" style="position: absolute; color: red; padding-top: 6%; padding-left: 3%">
+        <div th:if="${param.error}" style="position: absolute; color: #ff0000; padding-top: 6%; padding-left: 3%">
             非法的用户名或密码
         </div>
         <div class="username-text">用户名:</div>
@@ -32,7 +34,7 @@
             <input type="text" name="username" placeholder="请输入用户名"/>
         </div>
         <div class="password-field">
-            <input type="password" name="password" placeholder="请输入密码" />
+            <input type="password" name="password" placeholder="请输入密码"/>
         </div>
 
 

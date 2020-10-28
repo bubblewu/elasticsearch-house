@@ -216,10 +216,10 @@
         // 当有文件添加进来时执行，负责view的创建
         function addFile(file) {
             var $li = $('<li id="' + file.id + '">' +
-                    '<p class="title">' + file.name + '</p>' +
-                    '<p class="imgWrap"></p>' +
-                    '<p class="progress"><span></span></p>' +
-                    '</li>'),
+                '<p class="title">' + file.name + '</p>' +
+                '<p class="imgWrap"></p>' +
+                '<p class="progress"><span></span></p>' +
+                '</li>'),
 
                 $btns = $('<div class="file-panel">' +
                     '<span class="cancel">删除</span>' +

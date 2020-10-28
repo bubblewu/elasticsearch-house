@@ -10,8 +10,8 @@ import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
 import com.bubble.house.entity.param.PhotoParam;
 import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.repository.*;
 import com.bubble.house.service.search.SearchService;
@@ -80,9 +80,9 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
-    public ResultEntity<HouseDTO> save(HouseParam houseParam) {
+    public ServiceResultEntity<HouseDTO> save(HouseParam houseParam) {
         HouseDetailEntity detail = new HouseDetailEntity();
-        ResultEntity<HouseDTO> subwayValidationResult = wrapperDetailInfo(detail, houseParam);
+        ServiceResultEntity<HouseDTO> subwayValidationResult = wrapperDetailInfo(detail, houseParam);
         if (subwayValidationResult != null) {
             return subwayValidationResult;
         }
@@ -123,7 +123,7 @@ public class HouseServiceImpl implements HouseService {
             houseDTO.setTags(tags);
         }
         LOGGER.info("save house [{}] info successfully", house.getId());
-        return new ResultEntity<>(true, null, houseDTO);
+        return new ServiceResultEntity<>(true, null, houseDTO);
     }
 
     /**
@@ -149,14 +149,14 @@ public class HouseServiceImpl implements HouseService {
     /**
      * 房源详细信息对象填充
      */
-    private ResultEntity<HouseDTO> wrapperDetailInfo(HouseDetailEntity houseDetail, HouseParam houseParam) {
+    private ServiceResultEntity<HouseDTO> wrapperDetailInfo(HouseDetailEntity houseDetail, HouseParam houseParam) {
         Optional<SubwayEntity> subwayOp = this.subwayRepository.findById(houseParam.getSubwayLineId());
         if (subwayOp.isPresent()) {
             SubwayEntity subway = subwayOp.get();
             Optional<SubwayStationEntity> subwayStationOp = this.subwayStationRepository.findById(houseParam.getSubwayStationId());
             if (!subwayStationOp.isPresent() || !subway.getId().equals(subwayStationOp.get().getSubwayId())) {
                 LOGGER.error("[{}] Not valid subway station!", houseDetail.getHouseId());
-                return new ResultEntity<>(false, "Not valid subway station!");
+                return new ServiceResultEntity<>(false, "Not valid subway station!");
             } else {
                 SubwayStationEntity subwayStation = subwayStationOp.get();
 
@@ -175,13 +175,13 @@ public class HouseServiceImpl implements HouseService {
             }
         } else {
             LOGGER.error("[{}] Not valid subway line!", houseDetail.getHouseId());
-            return new ResultEntity<>(false, "Not valid subway line!");
+            return new ServiceResultEntity<>(false, "Not valid subway line!");
         }
         return null;
     }
 
     @Override
-    public MultiResultEntity<HouseDTO> adminQuery(DatatableSearchParam searchBody) {
+    public ServiceMultiResultEntity<HouseDTO> adminQuery(DatatableSearchParam searchBody) {
         List<HouseDTO> houseDTOS = Lists.newArrayList();
         // 分页查询
         Sort sort = Sort.by(Sort.Direction.fromString(searchBody.getDirection()), searchBody.getOrderBy());
@@ -222,15 +222,15 @@ public class HouseServiceImpl implements HouseService {
             houseDTOS.add(houseDTO);
         });
 
-        return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
+        return new ServiceMultiResultEntity<>(houses.getTotalElements(), houseDTOS);
 //        return new MultiResultEntity<>(houseDTOS.size(), houseDTOS);
     }
 
     @Override
-    public ResultEntity<HouseDTO> findCompleteOne(Long id) {
+    public ServiceResultEntity<HouseDTO> findCompleteOne(Long id) {
         Optional<HouseEntity> houseOp = houseRepository.findById(id);
         if (!houseOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         HouseDetailEntity detail = houseDetailRepository.findByHouseId(id);
         List<HousePictureEntity> pictures = housePictureRepository.findAllByHouseId(id);
@@ -258,22 +258,22 @@ public class HouseServiceImpl implements HouseService {
                 result.setSubscribeStatus(subscribe.getStatus());
             }
         }
-        return ResultEntity.of(result);
+        return ServiceResultEntity.of(result);
     }
 
     @Override
     @Transactional
-    public ResultEntity update(HouseParam houseParam) {
+    public ServiceResultEntity update(HouseParam houseParam) {
         Optional<HouseEntity> houseOp = this.houseRepository.findById(houseParam.getId());
         if (!houseOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         HouseEntity house = houseOp.get();
         HouseDetailEntity detail = this.houseDetailRepository.findByHouseId(house.getId());
         if (detail == null) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
-        ResultEntity wrapperResult = wrapperDetailInfo(detail, houseParam);
+        ServiceResultEntity wrapperResult = wrapperDetailInfo(detail, houseParam);
         if (wrapperResult != null) {
             return wrapperResult;
         }
@@ -293,91 +293,91 @@ public class HouseServiceImpl implements HouseService {
             this.searchService.index(house.getId());
         }
 
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 
     @Override
-    public ResultEntity removePhoto(Long id) {
+    public ServiceResultEntity removePhoto(Long id) {
         Optional<HousePictureEntity> pictureOp = this.housePictureRepository.findById(id);
         if (pictureOp.isPresent()) {
             try {
                 Response response = this.qiNiuService.delete(pictureOp.get().getPath());
                 if (response.isOK()) {
                     this.housePictureRepository.deleteById(id);
-                    return ResultEntity.success();
+                    return ServiceResultEntity.success();
                 } else {
-                    return new ResultEntity(false, response.error);
+                    return new ServiceResultEntity(false, response.error);
                 }
             } catch (QiniuException e) {
                 LOGGER.error("删除七牛云图片[{}]异常", id);
-                return new ResultEntity(false, e.getMessage());
+                return new ServiceResultEntity(false, e.getMessage());
             }
         } else {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
     }
 
     @Override
     @Transactional
-    public ResultEntity updateCover(Long coverId, Long targetId) {
+    public ServiceResultEntity updateCover(Long coverId, Long targetId) {
         Optional<HousePictureEntity> coverOp = this.housePictureRepository.findById(coverId);
         if (!coverOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         this.houseRepository.updateCover(targetId, coverOp.get().getPath());
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 
     @Override
     @Transactional
-    public ResultEntity addTag(Long houseId, String tag) {
+    public ServiceResultEntity addTag(Long houseId, String tag) {
         Optional<HouseEntity> houseOp = this.houseRepository.findById(houseId);
         if (!houseOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
 
         HouseTagEntity houseTag = this.houseTagRepository.findByNameAndHouseId(tag, houseId);
         if (houseTag != null) {
-            return new ResultEntity(false, "标签已存在");
+            return new ServiceResultEntity(false, "标签已存在");
         }
         this.houseTagRepository.save(new HouseTagEntity(houseId, tag));
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 
     @Override
     @Transactional
-    public ResultEntity removeTag(Long houseId, String tag) {
+    public ServiceResultEntity removeTag(Long houseId, String tag) {
         Optional<HouseEntity> houseOp = this.houseRepository.findById(houseId);
         if (!houseOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
 
         HouseTagEntity houseTag = this.houseTagRepository.findByNameAndHouseId(tag, houseId);
         if (houseTag == null) {
-            return new ResultEntity(false, "标签不存在");
+            return new ServiceResultEntity(false, "标签不存在");
         }
 
         this.houseTagRepository.deleteById(houseTag.getId());
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 
 
     @Override
     @Transactional
-    public ResultEntity updateStatus(Long id, int status) {
+    public ServiceResultEntity updateStatus(Long id, int status) {
         Optional<HouseEntity> houseOp = this.houseRepository.findById(id);
         if (!houseOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         HouseEntity house = houseOp.get();
         if (house.getStatus() == status) {
-            return new ResultEntity(false, "状态没有发生变化");
+            return new ServiceResultEntity(false, "状态没有发生变化");
         }
         if (house.getStatus() == HouseStatus.RENTED.getValue()) {
-            return new ResultEntity(false, "已出租的房源不允许修改状态");
+            return new ServiceResultEntity(false, "已出租的房源不允许修改状态");
         }
         if (house.getStatus() == HouseStatus.DELETED.getValue()) {
-            return new ResultEntity(false, "已删除的资源不允许操作");
+            return new ServiceResultEntity(false, "已删除的资源不允许操作");
         }
         this.houseRepository.updateStatus(id, status);
 
@@ -387,23 +387,23 @@ public class HouseServiceImpl implements HouseService {
         } else {
             searchService.remove(id);
         }
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 
     @Override
-    public MultiResultEntity<HouseDTO> query(RentSearchParam rentSearch) {
+    public ServiceMultiResultEntity<HouseDTO> query(RentSearchParam rentSearch) {
         if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
-            MultiResultEntity<Long> multiResult = this.searchService.query(rentSearch);
+            ServiceMultiResultEntity<Long> multiResult = this.searchService.query(rentSearch);
             if (multiResult.getTotal() == 0) {
-                return new MultiResultEntity<>(0, Lists.newArrayList());
+                return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
             }
-            return new MultiResultEntity<>(multiResult.getTotal(), wrapperHouseResult(multiResult.getResult()));
+            return new ServiceMultiResultEntity<>(multiResult.getTotal(), wrapperHouseResult(multiResult.getResult()));
         }
         // 简单查询
         return simpleQuery(rentSearch);
     }
 
-    private MultiResultEntity<HouseDTO> simpleQuery(RentSearchParam rentSearch) {
+    private ServiceMultiResultEntity<HouseDTO> simpleQuery(RentSearchParam rentSearch) {
         Sort sort = HouseSort.generateSort(rentSearch.getOrderBy(), rentSearch.getOrderDirection());
         int page = rentSearch.getStart() / rentSearch.getSize();
         Pageable pageable = PageRequest.of(page, rentSearch.getSize(), sort);
@@ -440,7 +440,7 @@ public class HouseServiceImpl implements HouseService {
         List<Long> houseIds = Lists.newArrayList();
         houses.forEach(h -> houseIds.add(h.getId()));
         List<HouseDTO> houseDTOS = wrapperHouseResult(houseIds);
-        return new MultiResultEntity<>(houses.getTotalElements(), houseDTOS);
+        return new ServiceMultiResultEntity<>(houses.getTotalElements(), houseDTOS);
     }
 
     /**
@@ -483,25 +483,25 @@ public class HouseServiceImpl implements HouseService {
 
 
     @Override
-    public MultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch) {
-        MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
+    public ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchEntity mapSearch) {
+        ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
 
         if (serviceResult.getTotal() == 0) {
-            return new MultiResultEntity<>(0, Lists.newArrayList());
+            return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
         }
         List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
-        return new MultiResultEntity<>(serviceResult.getTotal(), houses);
+        return new ServiceMultiResultEntity<>(serviceResult.getTotal(), houses);
     }
 
     @Override
-    public MultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch) {
-        MultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
+    public ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchEntity mapSearch) {
+        ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
         if (serviceResult.getTotal() == 0) {
-            return new MultiResultEntity<>(0, Lists.newArrayList());
+            return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
         }
 
         List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
-        return new MultiResultEntity<>(serviceResult.getTotal(), houses);
+        return new ServiceMultiResultEntity<>(serviceResult.getTotal(), houses);
     }
 
 }

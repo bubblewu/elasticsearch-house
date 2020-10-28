@@ -24,6 +24,7 @@ public class LoginAuthFailHandler extends SimpleUrlAuthenticationFailureHandler 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
+        // 获取要跳转的url
         String targetUrl = this.urlEntryPoint.determineUrlToUseForThisRequest(request, response, exception);
 
         targetUrl += "?" + exception.getMessage();

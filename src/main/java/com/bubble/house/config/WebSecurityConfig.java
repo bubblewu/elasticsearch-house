@@ -31,28 +31,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
-
         // 资源访问权限
         http.authorizeRequests()
-                .antMatchers("/admin/login").permitAll() // permitAll不需要验证, 管理员登录入口
-                .antMatchers("/static/**").permitAll() // 静态资源
-                .antMatchers("/user/login").permitAll() // 用户登录入口
-                .antMatchers("/admin/**").hasRole("ADMIN")  // 需要相应的角色才能访问
+                // permitAll不需要验证, 管理员登录入口
+                .antMatchers("/admin/login").permitAll()
+                // 静态资源
+                .antMatchers("/static/**").permitAll()
+                // 用户登录入口
+                .antMatchers("/user/login").permitAll()
+                // 需要相应的角色才能访问
+                .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
                 .antMatchers("/api/user/**").hasAnyRole("ADMIN", "USER")
                 .and()
-                .formLogin()  // 基于Form表单登录验证
-                .loginProcessingUrl("/login") // 配置角色登录处理入口
+                // 基于Form表单登录验证
+                .formLogin()
+                // 配置角色登录处理入口
+                .loginProcessingUrl("/login")
+                // 登录验证失败处理器
                 .failureHandler(authFailHandler())
                 .and()
-                .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/logout/page")
-                .deleteCookies("JSESSIONID")
-                .invalidateHttpSession(true)
+                // 登出注销配置
+                .logout().logoutUrl("/logout").logoutSuccessUrl("/logout/page")
+                // 登出后删除session，使会话失效
+                .deleteCookies("JSESSIONID").invalidateHttpSession(true)
                 .and()
+                // 路由Mapping后的跳转登录入口
                 .exceptionHandling()
                 .authenticationEntryPoint(urlEntryPoint())
+                // 无权访问的提示页面
                 .accessDeniedPage("/status/403");
 
         http.csrf().disable();
@@ -72,11 +79,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new AuthProvider();
     }
 
+    /**
+     * 根据访问路径来进行路由Mapping后的跳转登录入口
+     */
     @Bean
     public LoginUrlEntryPoint urlEntryPoint() {
+        // 默认走用户的登录入口
         return new LoginUrlEntryPoint("/user/login");
     }
 
+    /**
+     * 登录验证失败处理器
+     */
     @Bean
     public LoginAuthFailHandler authFailHandler() {
         return new LoginAuthFailHandler(urlEntryPoint());

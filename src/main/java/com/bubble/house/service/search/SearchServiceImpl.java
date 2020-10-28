@@ -8,8 +8,8 @@ import com.bubble.house.base.search.HouseSuggest;
 import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.entity.house.*;
 import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
 import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.entity.search.RentValueBlockEntity;
@@ -144,7 +144,7 @@ public class SearchServiceImpl implements SearchService {
             if (result == DocWriteResponse.Result.DELETED) {
                 LOGGER.info("删除[{}]成功.", houseId);
 
-                ResultEntity serviceResult = addressService.removeLbs(houseId);
+                ServiceResultEntity serviceResult = addressService.removeLbs(houseId);
                 if (!serviceResult.isSuccess()) {
                     LOGGER.error("删除LBS data [{}]失败.", houseId);
                     // 重新加入消息队列
@@ -181,7 +181,7 @@ public class SearchServiceImpl implements SearchService {
         CityEntity region = cityRepository.findByEnNameAndLevel(house.getRegionEnName(), CityLevel.REGION.getValue());
 
         String address = city.getCnName() + region.getCnName() + house.getStreet() + house.getDistrict() + detail.getDetailAddress();
-        ResultEntity<BaiDuMapEntity> location = addressService.getBaiDuMapLocation(city.getCnName(), address);
+        ServiceResultEntity<BaiDuMapEntity> location = addressService.getBaiDuMapLocation(city.getCnName(), address);
         if (!location.isSuccess()) {
             this.index(message.getHouseId(), message.getRetry() + 1);
             return;
@@ -213,7 +213,7 @@ public class SearchServiceImpl implements SearchService {
                 success = deleteAndCreate(totalHit, indexTemplate);
             }
 
-            ResultEntity serviceResult = addressService.lbsUpload(location.getResult(), house.getStreet() + house.getDistrict(),
+            ServiceResultEntity serviceResult = addressService.lbsUpload(location.getResult(), house.getStreet() + house.getDistrict(),
                     city.getCnName() + region.getCnName() + house.getStreet() + house.getDistrict(),
                     message.getHouseId(), house.getPrice(), house.getArea());
 
@@ -345,7 +345,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public MultiResultEntity<Long> query(RentSearchParam rentSearch) {
+    public ServiceMultiResultEntity<Long> query(RentSearchParam rentSearch) {
         // city_en_name
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         boolQuery.filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, rentSearch.getCityEnName()));
@@ -435,20 +435,20 @@ public class SearchServiceImpl implements SearchService {
                     String houseId = String.valueOf(hit.getSourceAsMap().get(HouseIndexConstants.HOUSE_ID));
                     houseIds.add(Long.parseLong(houseId));
                 }
-                return new MultiResultEntity<>(totalHits.value, houseIds);
+                return new ServiceMultiResultEntity<>(totalHits.value, houseIds);
             } else {
                 LOGGER.error("Search status is not ok for: {}", request);
-                return new MultiResultEntity<>(0, houseIds);
+                return new ServiceMultiResultEntity<>(0, houseIds);
             }
         } catch (IOException e) {
             LOGGER.error("Query Error...");
         }
 
-        return new MultiResultEntity<>(0, Lists.newArrayList());
+        return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
     }
 
     @Override
-    public ResultEntity<List<String>> suggest(String prefix) {
+    public ServiceResultEntity<List<String>> suggest(String prefix) {
         SearchRequest searchRequest = new SearchRequest(HouseIndexConstants.INDEX_NAME);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         SuggestionBuilder suggestion = SuggestBuilders.completionSuggestion("suggest").prefix(prefix).size(HouseIndexConstants.SUGGESTION_COUNT);
@@ -462,7 +462,7 @@ public class SearchServiceImpl implements SearchService {
             if (response.status() == RestStatus.OK) {
                 Suggest suggest = response.getSuggest();
                 if (null == suggest) {
-                    return ResultEntity.of(Lists.newArrayList());
+                    return ServiceResultEntity.of(Lists.newArrayList());
                 }
                 Suggest.Suggestion result = suggest.getSuggestion(HouseIndexConstants.SUGGESTION_NAME);
                 int maxSuggest = 0;
@@ -487,15 +487,15 @@ public class SearchServiceImpl implements SearchService {
                     }
                 }
                 List<String> suggests = Lists.newArrayList(suggestSet.toArray(new String[]{}));
-                return ResultEntity.of(suggests);
+                return ServiceResultEntity.of(suggests);
             } else {
-                return ResultEntity.of(Lists.newArrayList());
+                return ServiceResultEntity.of(Lists.newArrayList());
             }
         } catch (IOException e) {
             LOGGER.error("异常");
         }
 
-        return ResultEntity.of(Lists.newArrayList());
+        return ServiceResultEntity.of(Lists.newArrayList());
     }
 
     private boolean updateSuggest(HouseIndexTemplate indexTemplate) {
@@ -539,7 +539,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     @Override
-    public ResultEntity<Long> aggregateDistrictHouse(String cityEnName, String regionEnName, String district) {
+    public ServiceResultEntity<Long> aggregateDistrictHouse(String cityEnName, String regionEnName, String district) {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()
                 .filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, cityEnName))
                 .filter(QueryBuilders.termQuery(HouseIndexConstants.REGION_EN_NAME, regionEnName))
@@ -557,7 +557,7 @@ public class SearchServiceImpl implements SearchService {
                 Terms terms = response.getAggregations().get(HouseIndexConstants.AGG_DISTRICT);
                 if (null != terms) { // ES中无该数据时
                     if (null != terms.getBuckets() && !terms.getBuckets().isEmpty()) {
-                        return ResultEntity.of(terms.getBucketByKey(district).getDocCount());
+                        return ServiceResultEntity.of(terms.getBucketByKey(district).getDocCount());
                     }
                 }
             } else {
@@ -567,11 +567,11 @@ public class SearchServiceImpl implements SearchService {
             LOGGER.info("aggregate district house 异常");
         }
 
-        return ResultEntity.of(0L);
+        return ServiceResultEntity.of(0L);
     }
 
     @Override
-    public MultiResultEntity<HouseBucketEntity> mapAggregate(String cityEnName) {
+    public ServiceMultiResultEntity<HouseBucketEntity> mapAggregate(String cityEnName) {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         boolQuery.filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, cityEnName));
         AggregationBuilder aggregationBuilder = AggregationBuilders.terms(HouseIndexConstants.AGG_REGION)
@@ -588,22 +588,22 @@ public class SearchServiceImpl implements SearchService {
             List<HouseBucketEntity> buckets = Lists.newArrayList();
             if (response.status() != RestStatus.OK) {
                 LOGGER.error("Aggregate status is not ok for: {}", searchRequest.toString());
-                return new MultiResultEntity<>(0, buckets);
+                return new ServiceMultiResultEntity<>(0, buckets);
             }
             Terms terms = response.getAggregations().get(HouseIndexConstants.AGG_REGION);
             for (Terms.Bucket bucket : terms.getBuckets()) {
                 buckets.add(new HouseBucketEntity(bucket.getKeyAsString(), bucket.getDocCount()));
             }
-            return new MultiResultEntity<>(response.getHits().getTotalHits().value, buckets);
+            return new ServiceMultiResultEntity<>(response.getHits().getTotalHits().value, buckets);
         } catch (IOException e) {
             LOGGER.error("map aggregate error.");
         }
 
-        return new MultiResultEntity<>(0, Lists.newArrayList());
+        return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
     }
 
     @Override
-    public MultiResultEntity<Long> mapQuery(String cityEnName, String orderBy, String orderDirection, int start, int size) {
+    public ServiceMultiResultEntity<Long> mapQuery(String cityEnName, String orderBy, String orderDirection, int start, int size) {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         boolQuery.filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, cityEnName));
 
@@ -621,20 +621,20 @@ public class SearchServiceImpl implements SearchService {
 
             if (response.status() != RestStatus.OK) {
                 LOGGER.error("Search status is not ok for: {}", searchRequest.toString());
-                return new MultiResultEntity<>(0, houseIds);
+                return new ServiceMultiResultEntity<>(0, houseIds);
             }
             for (SearchHit hit : response.getHits()) {
                 houseIds.add(Long.parseLong(String.valueOf(hit.getSourceAsMap().get(HouseIndexConstants.HOUSE_ID))));
             }
-            return new MultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
+            return new ServiceMultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
         } catch (IOException e) {
             LOGGER.error("异常");
         }
-        return new MultiResultEntity<>(0, Lists.newArrayList());
+        return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
     }
 
     @Override
-    public MultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch) {
+    public ServiceMultiResultEntity<Long> mapQuery(MapSearchEntity mapSearch) {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
         boolQuery.filter(QueryBuilders.termQuery(HouseIndexConstants.CITY_EN_NAME, mapSearch.getCityEnName()));
 
@@ -660,16 +660,16 @@ public class SearchServiceImpl implements SearchService {
 
             if (response.status() != RestStatus.OK) {
                 LOGGER.error("Search status is not ok for: {}", searchRequest.toString());
-                return new MultiResultEntity<>(0, houseIds);
+                return new ServiceMultiResultEntity<>(0, houseIds);
             }
             for (SearchHit hit : response.getHits()) {
                 houseIds.add(Long.parseLong(String.valueOf(hit.getSourceAsMap().get(HouseIndexConstants.HOUSE_ID))));
             }
-            return new MultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
+            return new ServiceMultiResultEntity<>(response.getHits().getTotalHits().value, houseIds);
         } catch (IOException e) {
             LOGGER.error("异常");
         }
-        return new MultiResultEntity<>(0, Lists.newArrayList());
+        return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
     }
 
 }

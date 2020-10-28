@@ -9,13 +9,13 @@ import java.util.List;
  * @author wugang
  * date: 2019-11-05 16:23
  **/
-public class MultiResultEntity<T> implements Serializable {
+public class ServiceMultiResultEntity<T> implements Serializable {
     private static final long serialVersionUID = -4332117581412537479L;
 
     private long total;
     private List<T> result;
 
-    public MultiResultEntity(long total, List<T> result) {
+    public ServiceMultiResultEntity(long total, List<T> result) {
         this.total = total;
         this.result = result;
     }

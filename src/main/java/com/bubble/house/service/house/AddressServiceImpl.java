@@ -5,8 +5,8 @@ import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.repository.CityRepository;
 import com.bubble.house.repository.SubwayRepository;
 import com.bubble.house.repository.SubwayStationRepository;
@@ -61,10 +61,10 @@ public class AddressServiceImpl implements AddressService {
     private ObjectMapper objectMapper;
 
     @Override
-    public MultiResultEntity<CityEntity> findAllCities() {
+    public ServiceMultiResultEntity<CityEntity> findAllCities() {
         List<CityEntity> cityEntityList = this.cityRepository.findAllByLevel(CityLevel.CITY.getValue());
         LOGGER.debug("加载城市信息：{}", cityEntityList.size());
-        return new MultiResultEntity<>(cityEntityList.size(), cityEntityList);
+        return new ServiceMultiResultEntity<>(cityEntityList.size(), cityEntityList);
     }
 
     @Override
@@ -79,13 +79,13 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public MultiResultEntity<CityEntity> findAllRegionsByCityEnName(String cityEnName) {
+    public ServiceMultiResultEntity<CityEntity> findAllRegionsByCityEnName(String cityEnName) {
         LOGGER.debug("开始加载城市[{}]下的县区信息", cityEnName);
         if (null == cityEnName) {
-            return new MultiResultEntity<>(0, null);
+            return new ServiceMultiResultEntity<>(0, null);
         }
         List<CityEntity> regions = this.cityRepository.findAllByLevelAndBelongTo(CityLevel.REGION.getValue(), cityEnName);
-        return new MultiResultEntity<>(regions.size(), regions);
+        return new ServiceMultiResultEntity<>(regions.size(), regions);
     }
 
     @Override
@@ -106,40 +106,40 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResultEntity<SubwayEntity> findSubway(Long subwayId) {
+    public ServiceResultEntity<SubwayEntity> findSubway(Long subwayId) {
         LOGGER.debug("开始加载地铁[{}]的地铁线路信息", subwayId);
         if (subwayId == null) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         Optional<SubwayEntity> subwayOp = subwayRepository.findById(subwayId);
-        return subwayOp.map(ResultEntity::of).orElseGet(ResultEntity::notFound);
+        return subwayOp.map(ServiceResultEntity::of).orElseGet(ServiceResultEntity::notFound);
     }
 
     @Override
-    public ResultEntity<SubwayStationEntity> findSubwayStation(Long stationId) {
+    public ServiceResultEntity<SubwayStationEntity> findSubwayStation(Long stationId) {
         LOGGER.debug("开始加载地铁站[{}]的信息", stationId);
         if (null == stationId) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         Optional<SubwayStationEntity> subwayStationOp = subwayStationRepository.findById(stationId);
-        return subwayStationOp.map(ResultEntity::of).orElseGet(ResultEntity::notFound);
+        return subwayStationOp.map(ServiceResultEntity::of).orElseGet(ServiceResultEntity::notFound);
     }
 
     @Override
-    public ResultEntity<CityEntity> findCity(String cityEnName) {
+    public ServiceResultEntity<CityEntity> findCity(String cityEnName) {
         LOGGER.debug("开始加载城市[{}]的信息", cityEnName);
         if (null == cityEnName) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         CityEntity city = cityRepository.findByEnNameAndLevel(cityEnName, CityLevel.CITY.getValue());
-        return city == null ? ResultEntity.notFound() : ResultEntity.of(city);
+        return city == null ? ServiceResultEntity.notFound() : ServiceResultEntity.of(city);
     }
 
     private static final String BAIDU_MAP_GEOCONV_API = "http://api.map.baidu.com/geocoder/v2/?";
     private static final String BAIDU_MAP_KEY = "6QtSF673D1pYl3eQkEXfwp8ZgsQpB77U";
 
     @Override
-    public ResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address) {
+    public ServiceResultEntity<BaiDuMapEntity> getBaiDuMapLocation(String city, String address) {
         LOGGER.debug("开始获取[{}-{}]的地理编码信息", city, address);
         String encodeAddress;
         String encodeCity;
@@ -149,7 +149,7 @@ public class AddressServiceImpl implements AddressService {
             encodeCity = URLEncoder.encode(city, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("[{} - {}] Encode 失败", city, address);
-            return new ResultEntity<>(false, "Encode house address失败");
+            return new ServiceResultEntity<>(false, "Encode house address失败");
         }
         // 百度地理编码服务
         HttpClient httpClient = HttpClients.createDefault();
@@ -164,24 +164,24 @@ public class AddressServiceImpl implements AddressService {
             HttpResponse response = httpClient.execute(get);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("[{} - {}] 获取百度坐标失败", city, address);
-                return new ResultEntity<>(false, "获取百度坐标信息失败");
+                return new ServiceResultEntity<>(false, "获取百度坐标信息失败");
             }
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             JsonNode jsonNode = objectMapper.readTree(result);
             int status = jsonNode.get("status").asInt();
             if (status != 0) {
                 LOGGER.error("[{} - {}] 获取百度坐标失败", city, address);
-                return new ResultEntity<>(false, "获取百度坐标信息失败, Status: " + status);
+                return new ServiceResultEntity<>(false, "获取百度坐标信息失败, Status: " + status);
             } else {
                 BaiDuMapEntity location = new BaiDuMapEntity();
                 JsonNode jsonLocation = jsonNode.get("result").get("location");
                 location.setLongitude(jsonLocation.get("lng").asDouble());
                 location.setLatitude(jsonLocation.get("lat").asDouble());
-                return ResultEntity.of(location);
+                return ServiceResultEntity.of(location);
             }
         } catch (IOException e) {
             LOGGER.error("[{} - {}] 获取百度坐标异常", city, address);
-            return new ResultEntity<>(false, "获取百度坐标信息出现异常");
+            return new ServiceResultEntity<>(false, "获取百度坐标信息出现异常");
         }
     }
 
@@ -195,7 +195,7 @@ public class AddressServiceImpl implements AddressService {
     private final String GEO_TABLE_ID = "175730";
 
     @Override
-    public ResultEntity lbsUpload(BaiDuMapEntity location, String title, String address, long houseId, int price, int area) {
+    public ServiceResultEntity lbsUpload(BaiDuMapEntity location, String title, String address, long houseId, int price, int area) {
         LOGGER.debug("开始上传LBS数据到百度存储, House:{}", houseId);
         HttpClient httpClient = HttpClients.createDefault();
         List<NameValuePair> nvps = Lists.newArrayList();
@@ -223,22 +223,22 @@ public class AddressServiceImpl implements AddressService {
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("上传LBS数据到百度云存储失败, Response: {}", result);
-                return new ResultEntity(false, "上传LBS数据到百度云存储失败");
+                return new ServiceResultEntity(false, "上传LBS数据到百度云存储失败");
             } else {
                 JsonNode jsonNode = objectMapper.readTree(result);
                 int status = jsonNode.get("status").asInt();
                 if (status != 0) {
                     String message = jsonNode.get("message").asText();
                     LOGGER.error("上传LBS数据到百度云存储失败, Status: {}. Message: {}", status, message);
-                    return new ResultEntity(false, "上传LBS数据到百度云存储失败");
+                    return new ServiceResultEntity(false, "上传LBS数据到百度云存储失败");
                 } else {
-                    return ResultEntity.success();
+                    return ServiceResultEntity.success();
                 }
             }
 
         } catch (IOException e) {
             LOGGER.error("上传LBS数据到百度云存储异常");
-            return new ResultEntity(false, "上传LBS数据到百度云存储异常");
+            return new ServiceResultEntity(false, "上传LBS数据到百度云存储异常");
         }
     }
 
@@ -277,7 +277,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public ResultEntity removeLbs(Long houseId) {
+    public ServiceResultEntity removeLbs(Long houseId) {
         LOGGER.debug("开始移除LBS数据, House: {}", houseId);
         HttpClient httpClient = HttpClients.createDefault();
         List<NameValuePair> nvps = Lists.newArrayListWithCapacity(3);
@@ -292,7 +292,7 @@ public class AddressServiceImpl implements AddressService {
             String result = EntityUtils.toString(response.getEntity(), "UTF-8");
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 LOGGER.error("移除LBS数据失败, Response: {}", response);
-                return new ResultEntity(false, "移除LBS数据失败");
+                return new ServiceResultEntity(false, "移除LBS数据失败");
             }
 
             JsonNode jsonNode = objectMapper.readTree(result);
@@ -300,12 +300,12 @@ public class AddressServiceImpl implements AddressService {
             if (status != 0) {
                 String message = jsonNode.get("message").asText();
                 LOGGER.error("移除LBS数据失败, Message: {}", message);
-                return new ResultEntity(false, "移除LBS数据失败, Message: {}" + message);
+                return new ServiceResultEntity(false, "移除LBS数据失败, Message: {}" + message);
             }
-            return ResultEntity.success();
+            return ServiceResultEntity.success();
         } catch (IOException e) {
             LOGGER.error("移除LBS数据异常");
-            return new ResultEntity(false, "移除LBS数据异常");
+            return new ServiceResultEntity(false, "移除LBS数据异常");
         }
     }
 

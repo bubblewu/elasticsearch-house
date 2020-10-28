@@ -2,7 +2,7 @@ package com.bubble.house.service.user;
 
 import com.bubble.house.base.ToolKits;
 import com.bubble.house.entity.dto.UserDTO;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.entity.user.RoleEntity;
 import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.repository.RoleRepository;
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
                 LOGGER.error("用户[{}]无权限", userName);
                 throw new DisabledException("用户[" + userName + "]无权限");
             }
-
+            // 设置用户权限
             List<GrantedAuthority> authorities = new ArrayList<>();
             roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName())));
             user.setAuthorityList(authorities);
@@ -71,13 +71,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultEntity<UserDTO> findById(Long userId) {
+    public ServiceResultEntity<UserDTO> findById(Long userId) {
         Optional<UserEntity> userOp = userRepository.findById(userId);
         if (!userOp.isPresent()) {
-            return ResultEntity.notFound();
+            return ServiceResultEntity.notFound();
         }
         UserDTO userDTO = modelMapper.map(userOp.get(), UserDTO.class);
-        return ResultEntity.of(userDTO);
+        return ServiceResultEntity.of(userDTO);
     }
 
     @Override
@@ -119,10 +119,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ResultEntity modifyUserProfile(String profile, String value) {
+    public ServiceResultEntity modifyUserProfile(String profile, String value) {
         Long userId = ToolKits.getLoginUserId();
         if (profile == null || profile.isEmpty()) {
-            return new ResultEntity(false, "属性不可以为空");
+            return new ServiceResultEntity(false, "属性不可以为空");
         }
         switch (profile) {
             case "name":
@@ -136,8 +136,8 @@ public class UserServiceImpl implements UserService {
                 userRepository.updatePassword(userId, value);
                 break;
             default:
-                return new ResultEntity(false, "不支持的属性");
+                return new ServiceResultEntity(false, "不支持的属性");
         }
-        return ResultEntity.success();
+        return ServiceResultEntity.success();
     }
 }

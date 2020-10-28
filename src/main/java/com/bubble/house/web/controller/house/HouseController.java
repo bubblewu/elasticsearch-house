@@ -1,4 +1,4 @@
-package com.bubble.house.web.controller;
+package com.bubble.house.web.controller.house;
 
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
@@ -9,8 +9,8 @@ import com.bubble.house.entity.house.CityLevel;
 import com.bubble.house.entity.house.SubwayEntity;
 import com.bubble.house.entity.house.SubwayStationEntity;
 import com.bubble.house.entity.param.RentSearchParam;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
 import com.bubble.house.entity.search.MapSearchEntity;
 import com.bubble.house.entity.search.RentValueBlockEntity;
@@ -56,7 +56,7 @@ public class HouseController {
     @GetMapping("address/support/cities")
     @ResponseBody
     public ApiResponse getSupportCity() {
-        MultiResultEntity<CityEntity> result = addressService.findAllCities();
+        ServiceMultiResultEntity<CityEntity> result = addressService.findAllCities();
         if (result.getResultSize() == 0) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -69,7 +69,7 @@ public class HouseController {
     @GetMapping("address/support/regions")
     @ResponseBody
     public ApiResponse getSupportRegions(@RequestParam(name = "city_name") String cityEnName) {
-        MultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(cityEnName);
+        ServiceMultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(cityEnName);
         if (addressResult.getResult() == null || addressResult.getTotal() < 1) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -122,7 +122,7 @@ public class HouseController {
             session.setAttribute("cityEnName", rentSearch.getCityEnName());
         }
         // 获取城市信息
-        ResultEntity<CityEntity> city = addressService.findCity(rentSearch.getCityEnName());
+        ServiceResultEntity<CityEntity> city = addressService.findCity(rentSearch.getCityEnName());
         if (!city.isSuccess()) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             // 跳转到index.html页面
@@ -130,13 +130,13 @@ public class HouseController {
         }
         model.addAttribute("currentCity", city.getResult());
 
-        MultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(rentSearch.getCityEnName());
+        ServiceMultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(rentSearch.getCityEnName());
         if (addressResult.getResult() == null || addressResult.getTotal() < 1) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             return "redirect:/index";
         }
 
-        MultiResultEntity<HouseDTO> serviceMultiResult = houseService.query(rentSearch);
+        ServiceMultiResultEntity<HouseDTO> serviceMultiResult = houseService.query(rentSearch);
 
         // 添加视图信息
         model.addAttribute("total", serviceMultiResult.getTotal());
@@ -171,7 +171,7 @@ public class HouseController {
         if (prefix.isEmpty()) {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
-        ResultEntity<List<String>> result = this.searchService.suggest(prefix);
+        ServiceResultEntity<List<String>> result = this.searchService.suggest(prefix);
         return ApiResponse.ofSuccess(result.getResult());
     }
 
@@ -184,7 +184,7 @@ public class HouseController {
         if (houseId <= 0) {
             return "status/404";
         }
-        ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(houseId);
+        ServiceResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(houseId);
         if (!serviceResult.isSuccess()) {
             return "status/404";
         }
@@ -196,12 +196,12 @@ public class HouseController {
         model.addAttribute("city", city);
         model.addAttribute("region", region);
 
-        ResultEntity<UserDTO> userDTOServiceResult = userService.findById(houseDTO.getAdminId());
+        ServiceResultEntity<UserDTO> userDTOServiceResult = userService.findById(houseDTO.getAdminId());
         // 经纪人
         model.addAttribute("agent", userDTOServiceResult.getResult());
         model.addAttribute("house", houseDTO);
         // 聚合数据：房源信息在小区中的数量
-        ResultEntity<Long> aggResult = searchService.aggregateDistrictHouse(city.getEnName(), region.getEnName(), houseDTO.getDistrict());
+        ServiceResultEntity<Long> aggResult = searchService.aggregateDistrictHouse(city.getEnName(), region.getEnName(), houseDTO.getDistrict());
         model.addAttribute("houseCountInDistrict", aggResult.getResult());
 //        model.addAttribute("houseCountInDistrict", 0);
         return "house-detail";
@@ -213,7 +213,7 @@ public class HouseController {
     @GetMapping("rent/house/map")
     public String rentMapPage(@RequestParam(value = "cityEnName") String cityEnName, Model model,
                               HttpSession session, RedirectAttributes redirectAttributes) {
-        ResultEntity<CityEntity> city = addressService.findCity(cityEnName);
+        ServiceResultEntity<CityEntity> city = addressService.findCity(cityEnName);
         if (!city.isSuccess()) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             return "redirect:/index";
@@ -221,9 +221,9 @@ public class HouseController {
             session.setAttribute("cityName", cityEnName);
             model.addAttribute("city", city.getResult());
         }
-        MultiResultEntity<CityEntity> regions = addressService.findAllRegionsByCityEnName(cityEnName);
+        ServiceMultiResultEntity<CityEntity> regions = addressService.findAllRegionsByCityEnName(cityEnName);
 
-        MultiResultEntity<HouseBucketEntity> serviceResult = searchService.mapAggregate(cityEnName);
+        ServiceMultiResultEntity<HouseBucketEntity> serviceResult = searchService.mapAggregate(cityEnName);
 
         model.addAttribute("aggData", serviceResult.getResult());
         model.addAttribute("total", serviceResult.getTotal());
@@ -240,7 +240,7 @@ public class HouseController {
         if (mapSearch.getCityEnName() == null) {
             return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), "必须选择城市");
         }
-        MultiResultEntity<HouseDTO> serviceMultiResult;
+        ServiceMultiResultEntity<HouseDTO> serviceMultiResult;
         if (mapSearch.getLevel() < 13) {
             serviceMultiResult = houseService.wholeMapQuery(mapSearch);
         } else {

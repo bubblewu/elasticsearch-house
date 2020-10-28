@@ -25,7 +25,7 @@ public class LoginUrlEntryPoint extends LoginUrlAuthenticationEntryPoint {
     private static final String API_CODE_403 = "{\"code\": 403}";
     private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
 
-    private PathMatcher pathMatcher = new AntPathMatcher();
+    private final PathMatcher pathMatcher = new AntPathMatcher();
     private final Map<String, String> authEntryPointMap;
 
     public LoginUrlEntryPoint(String loginFormUrl) {
@@ -44,8 +44,9 @@ public class LoginUrlEntryPoint extends LoginUrlAuthenticationEntryPoint {
     @Override
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response,
                                                      AuthenticationException exception) {
+        // 获取原先要跳转的url，即访问路径
         String uri = request.getRequestURI().replace(request.getContextPath(), "");
-
+        // 根据访问路径来匹配登录入口
         for (Map.Entry<String, String> authEntry : this.authEntryPointMap.entrySet()) {
             if (this.pathMatcher.match(authEntry.getKey(), uri)) {
                 return authEntry.getValue();

@@ -1,4 +1,4 @@
-package com.bubble.house.web.controller;
+package com.bubble.house.web.controller.admin;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bubble.house.base.api.ApiDataTableResponse;
@@ -10,8 +10,8 @@ import com.bubble.house.entity.dto.HouseDetailDTO;
 import com.bubble.house.entity.house.*;
 import com.bubble.house.entity.param.DatatableSearchParam;
 import com.bubble.house.entity.param.HouseParam;
-import com.bubble.house.entity.result.MultiResultEntity;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceMultiResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import com.bubble.house.service.house.AddressService;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
@@ -34,7 +34,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * 后台管理中心
+ * 角色为Admin：Admin用户的后台管理中心
  *
  * @author wugang
  * date: 2019-11-05 11:32
@@ -43,6 +43,9 @@ import java.util.Map;
 public class AdminController {
     private final static Logger LOGGER = LoggerFactory.getLogger(AdminController.class);
 
+    /**
+     * 图片上传到本地的文件路径
+     */
     @Value("${spring.http.multipart.location}")
     private String imageLocation;
 
@@ -103,7 +106,7 @@ public class AdminController {
     @ResponseBody
     public ApiDataTableResponse houses(@ModelAttribute DatatableSearchParam searchBody) {
         LOGGER.debug("进入房源信息展示接口：[admin/houses]");
-        MultiResultEntity<HouseDTO> result = houseService.adminQuery(searchBody);
+        ServiceMultiResultEntity<HouseDTO> result = houseService.adminQuery(searchBody);
         ApiDataTableResponse response = new ApiDataTableResponse(ApiStatus.SUCCESS);
         response.setData(result.getResult());
         response.setRecordsFiltered(result.getTotal());
@@ -140,7 +143,7 @@ public class AdminController {
             return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
         }
 
-        ResultEntity<HouseDTO> result = this.houseService.save(houseParam);
+        ServiceResultEntity<HouseDTO> result = this.houseService.save(houseParam);
         if (result.isSuccess()) {
             return ApiResponse.ofSuccess(result.getResult());
         }
@@ -156,7 +159,7 @@ public class AdminController {
         if (id == null || id < 1) {
             return "status/404";
         }
-        ResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(id);
+        ServiceResultEntity<HouseDTO> serviceResult = houseService.findCompleteOne(id);
         if (!serviceResult.isSuccess()) {
             return "status/404";
         }
@@ -168,12 +171,12 @@ public class AdminController {
         model.addAttribute("region", addressMap.get(CityLevel.REGION));
 
         HouseDetailDTO detailDTO = result.getHouseDetail();
-        ResultEntity<SubwayEntity> subwayServiceResult = addressService.findSubway(detailDTO.getSubwayLineId());
+        ServiceResultEntity<SubwayEntity> subwayServiceResult = addressService.findSubway(detailDTO.getSubwayLineId());
         if (subwayServiceResult.isSuccess()) {
             model.addAttribute("subway", subwayServiceResult.getResult());
         }
 
-        ResultEntity<SubwayStationEntity> subwayStationServiceResult = addressService.findSubwayStation(detailDTO.getSubwayStationId());
+        ServiceResultEntity<SubwayStationEntity> subwayStationServiceResult = addressService.findSubwayStation(detailDTO.getSubwayStationId());
         if (subwayStationServiceResult.isSuccess()) {
             model.addAttribute("station", subwayStationServiceResult.getResult());
         }
@@ -195,7 +198,7 @@ public class AdminController {
             return ApiResponse.ofSuccess(ApiStatus.NOT_VALID_PARAM);
         }
 
-        ResultEntity result = houseService.update(houseParam);
+        ServiceResultEntity result = houseService.update(houseParam);
         if (result.isSuccess()) {
             return ApiResponse.ofSuccess(null);
         }
@@ -244,7 +247,7 @@ public class AdminController {
     public ApiResponse removeHousePhoto(@RequestParam(value = "id") Long id) {
         LOGGER.debug("进入图片删除接口：[admin/house/photo]");
 
-        ResultEntity result = this.houseService.removePhoto(id);
+        ServiceResultEntity result = this.houseService.removePhoto(id);
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);
         } else {
@@ -261,7 +264,7 @@ public class AdminController {
                                    @RequestParam(value = "target_id") Long targetId) {
         LOGGER.debug("进入修改房源封面接口：[admin/house/cover]");
 
-        ResultEntity result = this.houseService.updateCover(coverId, targetId);
+        ServiceResultEntity result = this.houseService.updateCover(coverId, targetId);
 
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);
@@ -282,7 +285,7 @@ public class AdminController {
         if (houseId < 1 || Strings.isNullOrEmpty(tag)) {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
-        ResultEntity result = this.houseService.addTag(houseId, tag);
+        ServiceResultEntity result = this.houseService.addTag(houseId, tag);
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);
         } else {
@@ -303,7 +306,7 @@ public class AdminController {
             return ApiResponse.ofStatus(ApiStatus.BAD_REQUEST);
         }
 
-        ResultEntity result = this.houseService.removeTag(houseId, tag);
+        ServiceResultEntity result = this.houseService.removeTag(houseId, tag);
         if (result.isSuccess()) {
             return ApiResponse.ofStatus(ApiStatus.SUCCESS);
         } else {
@@ -323,7 +326,7 @@ public class AdminController {
         if (id <= 0) {
             return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
         }
-        ResultEntity result;
+        ServiceResultEntity result;
         switch (operation) {
             case HouseOperation.PASS:
                 result = this.houseService.updateStatus(id, HouseStatus.PASSES.getValue());

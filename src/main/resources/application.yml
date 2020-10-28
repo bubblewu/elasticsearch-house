@@ -26,7 +26,7 @@ spring:
       force: true
       charset: UTF-8
       enabled: true
-    # multipart config
+    # 文件上传 multipart config
     multipart:
       enabled: true
       location: /Users/wugang/code/java/elasticsearch-house/tmp/images/

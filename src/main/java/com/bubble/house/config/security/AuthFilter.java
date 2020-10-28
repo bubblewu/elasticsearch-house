@@ -53,7 +53,8 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
         String inputCode = request.getParameter("smsCode");
         String sessionCode = this.smsService.getSmsCode(telephone);
         if (Objects.equals(inputCode, sessionCode)) {
-            if (user == null) { // 如果用户第一次用手机登录 则自动注册该用户
+            // 如果用户第一次用手机登录 则自动注册该用户
+            if (user == null) {
                 user = this.userService.addUserByPhone(telephone);
             }
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

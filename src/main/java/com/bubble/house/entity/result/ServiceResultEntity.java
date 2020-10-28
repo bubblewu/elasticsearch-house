@@ -3,28 +3,28 @@ package com.bubble.house.entity.result;
 import java.io.Serializable;
 
 /**
- * 单一结果
+ * 单一服务接口通用结构
  *
  * @author wugang
  * date: 2019-11-05 18:25
  **/
-public class ResultEntity<T> implements Serializable {
+public class ServiceResultEntity<T> implements Serializable {
     private static final long serialVersionUID = 8366884940162742457L;
 
     private boolean success;
     private String message;
     private T result;
 
-    public ResultEntity(boolean success) {
+    public ServiceResultEntity(boolean success) {
         this.success = success;
     }
 
-    public ResultEntity(boolean success, String message) {
+    public ServiceResultEntity(boolean success, String message) {
         this.success = success;
         this.message = message;
     }
 
-    public ResultEntity(boolean success, String message, T result) {
+    public ServiceResultEntity(boolean success, String message, T result) {
         this.success = success;
         this.message = message;
         this.result = result;
@@ -54,21 +54,24 @@ public class ResultEntity<T> implements Serializable {
         this.result = result;
     }
 
-    public static <T> ResultEntity<T> success() {
-        return new ResultEntity<>(true);
+    public static <T> ServiceResultEntity<T> success() {
+        return new ServiceResultEntity<>(true);
     }
 
-    public static <T> ResultEntity<T> of(T result) {
-        ResultEntity<T> serviceResult = new ResultEntity<>(true);
+    public static <T> ServiceResultEntity<T> of(T result) {
+        ServiceResultEntity<T> serviceResult = new ServiceResultEntity<>(true);
         serviceResult.setResult(result);
         return serviceResult;
     }
 
-    public static <T> ResultEntity<T> notFound() {
-        return new ResultEntity<>(false, Message.NOT_FOUND.getValue());
+    public static <T> ServiceResultEntity<T> notFound() {
+        return new ServiceResultEntity<>(false, Message.NOT_FOUND.getValue());
     }
 
     public enum Message {
+        /**
+         * 服务返回信息
+         */
         NOT_FOUND("Not Found Resource!"),
         NOT_LOGIN("User not login!");
 

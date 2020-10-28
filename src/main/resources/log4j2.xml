@@ -70,6 +70,7 @@
     </Appenders>
 
     <Loggers>
+        <logger name="org" level="info"/>
         <logger name="org.springframework" level="INFO"/>
         <logger name="com.zaxxer" level="INFO"/>
         <logger name="org.hibernate" level="INFO"/>

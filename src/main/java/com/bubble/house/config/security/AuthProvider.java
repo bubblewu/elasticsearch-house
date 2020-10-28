@@ -23,7 +23,6 @@ public class AuthProvider implements AuthenticationProvider {
 
     @Autowired
     private UserService userService;
-//    private PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -35,10 +34,8 @@ public class AuthProvider implements AuthenticationProvider {
             LOGGER.error("用户[{}]无权限", userName);
             throw new AuthenticationCredentialsNotFoundException("authError");
         }
-//        if (this.passwordEncoder.matches(user.getPassword(), inputPassword + user.getId())) {
-//            return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-//        }
         if (user.getPassword().equals(inputPassword)) {
+            // 参数：认证用户、密码、拥有的认证权限
             return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         }
 

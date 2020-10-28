@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.*;
+import org.thymeleaf.extras.springsecurity5.dialect.SpringSecurityDialect;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
@@ -46,6 +47,7 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
         // 配置Spring上下文
         templateResolver.setApplicationContext(this.applicationContext);
+        // 防止中文乱码
         templateResolver.setCharacterEncoding("UTF-8");
         templateResolver.setCacheable(thymeleafCacheEnable);
         return templateResolver;
@@ -62,6 +64,9 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         templateEngine.setTemplateResolver(templateResolver());
         // 支持Spring EL表达式
         templateEngine.setEnableSpringELCompiler(true);
+        // 支持SpringSecurity方言
+        SpringSecurityDialect securityDialect = new SpringSecurityDialect();
+        templateEngine.addDialect(securityDialect);
         return templateEngine;
     }
 

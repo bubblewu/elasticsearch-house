@@ -70,7 +70,8 @@ public class UserEntity implements Serializable, UserDetails {
     private String avatar;
 
     /**
-     *
+     * 用户权限信息集合。
+     * 注意：因为user表中没有该字段，所以添加@Transient注解，不需要去验证该字段，让该字段处于透明状态。
      */
     @Transient
     private List<GrantedAuthority> authorityList;

@@ -8,7 +8,7 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,12 +51,12 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
 
 
     @Override
-    public ResultEntity<String> sendSms(String telephone) {
+    public ServiceResultEntity<String> sendSms(String telephone) {
         String gapKey = "SMS::CODE::INTERVAL::" + telephone;
         String result = redisTemplate.opsForValue().get(gapKey);
         if (result != null) {
             LOGGER.error("send sms [{}] 请求次数太频繁", telephone);
-            return new ResultEntity<>(false, "请求次数太频繁");
+            return new ServiceResultEntity<>(false, "请求次数太频繁");
         }
         String code = generateRandomSmsCode();
         String templateParam = String.format("{\"code\": \"%s\"}", code);
@@ -83,10 +83,10 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
         if (success) {
             redisTemplate.opsForValue().set(gapKey, code, 60, TimeUnit.SECONDS);
             redisTemplate.opsForValue().set(SMS_CODE_CONTENT_PREFIX + telephone, code, 10, TimeUnit.MINUTES);
-            return ResultEntity.of(code);
+            return ServiceResultEntity.of(code);
         } else {
             LOGGER.error("send sms [{}] 服务忙，请稍后重试", telephone);
-            return new ResultEntity<>(false, "服务忙，请稍后重试");
+            return new ServiceResultEntity<>(false, "服务忙，请稍后重试");
         }
     }
 

@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * Role
+ * Role：角色数据
  *
  * @author wugang
  * date: 2019-11-05 19:15

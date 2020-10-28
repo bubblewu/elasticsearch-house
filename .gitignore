@@ -22,5 +22,5 @@ model**.txt
 #*.txt
 /src/main/resources/data/*
 #/src/test/*
-/tmp/*
+#/tmp/*
 src/main/resources/application.yml

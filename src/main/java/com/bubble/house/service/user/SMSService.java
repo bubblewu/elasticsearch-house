@@ -1,6 +1,6 @@
 package com.bubble.house.service.user;
 
-import com.bubble.house.entity.result.ResultEntity;
+import com.bubble.house.entity.result.ServiceResultEntity;
 
 /**
  * SMS短信服务：验证码服务
@@ -13,7 +13,7 @@ public interface SMSService {
     /**
      * 发送验证码到指定手机 并 缓存验证码 10分钟 及 请求间隔时间1分钟
      */
-    ResultEntity<String> sendSms(String telephone);
+    ServiceResultEntity<String> sendSms(String telephone);
 
     /**
      * 获取缓存中的验证码
