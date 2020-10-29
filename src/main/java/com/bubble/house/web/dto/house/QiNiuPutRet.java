@@ -1,4 +1,4 @@
-package com.bubble.house.entity;
+package com.bubble.house.web.dto.house;
 
 import java.io.Serializable;
 
@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @author wugang
  * date: 2019-11-05 15:12
  **/
-public class QiNiuEntity implements Serializable {
+public class QiNiuPutRet implements Serializable {
     private static final long serialVersionUID = 8424779362117980614L;
 
     private String key;

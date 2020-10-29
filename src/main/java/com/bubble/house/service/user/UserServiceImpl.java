@@ -6,7 +6,7 @@ import com.bubble.house.entity.user.UserEntity;
 import com.bubble.house.repository.RoleRepository;
 import com.bubble.house.repository.UserRepository;
 import com.bubble.house.service.ServiceResultEntity;
-import com.bubble.house.web.dto.UserDTO;
+import com.bubble.house.web.dto.user.UserDTO;
 import com.google.common.collect.Lists;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;

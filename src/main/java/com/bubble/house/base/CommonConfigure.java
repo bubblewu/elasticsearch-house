@@ -1,5 +1,6 @@
 package com.bubble.house.base;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,11 +15,21 @@ import org.springframework.context.annotation.Configuration;
 public class CommonConfigure {
 
     /**
-     * 序列化和反序列化（替换fastjson）
+     * Gson序列化和反序列化（替换fastjson）
      */
     @Bean
     public Gson gson() {
         return new Gson();
+    }
+
+    /**
+     * jackson序列化和反序列化
+     *
+     * @return ObjectMapper
+     */
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
 }

@@ -1,4 +1,4 @@
-package com.bubble.house.web.dto;
+package com.bubble.house.web.dto.user;
 
 import java.io.Serializable;
 

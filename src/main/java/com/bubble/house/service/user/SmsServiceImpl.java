@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
  * date: 2019-11-06 11:28
  **/
 @Service
-public class SMSServiceImpl implements SMSService, InitializingBean {
-    private final static Logger LOGGER = LoggerFactory.getLogger(SMSServiceImpl.class);
+public class SmsServiceImpl implements SmsService, InitializingBean {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SmsServiceImpl.class);
 
     @Value("${aliyun.sms.access-key}")
     private String accessKey;
@@ -45,7 +45,7 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public SMSServiceImpl(RedisTemplate<String, String> redisTemplate) {
+    public SmsServiceImpl(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -123,7 +123,8 @@ public class SMSServiceImpl implements SMSService, InitializingBean {
         String product = "Dysmsapi";
         String domain = "dysmsapi.aliyuncs.com";
 
-        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+//        DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+        DefaultProfile.addEndpoint("cn-hangzhou", product, "cn-hangzhou");
         this.acsClient = new DefaultAcsClient(profile);
     }
 

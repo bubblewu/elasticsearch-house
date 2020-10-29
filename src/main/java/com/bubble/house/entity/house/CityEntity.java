@@ -1,12 +1,10 @@
 package com.bubble.house.entity.house;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * 地址实体
+ * 城市地址实体
  *
  * @author wugang
  * date: 2019-11-05 16:24
@@ -19,20 +17,35 @@ public class CityEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonProperty(value = "belong_to")
+    /**
+     * 上一级行政单位名
+     */
     @Column(name = "belong_to")
-    private String belongTo;  // 上一级行政单位名
-    @JsonProperty(value = "en_name")
+    private String belongTo;
+    /**
+     * 行政单位英文名缩写
+     */
     @Column(name = "en_name")
-    private String enName;  // 行政单位英文名缩写
-    @JsonProperty(value = "cn_name")
+    private String enName;
+    /**
+     * 行政单位中文名
+     */
     @Column(name = "cn_name")
-    private String cnName;  // 行政单位中文名
-    private String level; // 行政级别 市-city 地区-region
+    private String cnName;
+    /**
+     * 行政级别 市-city 地区-region
+     */
+    private String level;
+    /**
+     * 百度地图经度
+     */
     @Column(name = "baidu_map_lng")
-    private double baiduMapLongitude;  // 百度地图经度
+    private double baiduMapLongitude;
+    /**
+     * 百度地图纬度
+     */
     @Column(name = "baidu_map_lat")
-    private double baiduMapLatitude;  // 百度地图纬度
+    private double baiduMapLatitude;
 
     public Long getId() {
         return id;

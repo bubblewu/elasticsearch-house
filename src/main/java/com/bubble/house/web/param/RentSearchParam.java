@@ -11,18 +11,54 @@ import java.io.Serializable;
 public class RentSearchParam implements Serializable {
     private static final long serialVersionUID = 9058052820519822044L;
 
-    private String cityEnName; // 城市
-    private String regionEnName; //区县
-    private String priceBlock; //价格区间
-    private String areaBlock; //便利区间
-    private int room; //房间数
-    private int direction; //朝向
-    private String keywords; //关键词
-    private int rentWay = -1; //租住方式
-    private String orderBy = "lastUpdateTime"; //默认排序字段
-    private String orderDirection = "desc"; //默认排序方式
-    private int start = 0; //
-    private int size = 5; //
+    /**
+     * 城市英文名
+     */
+    private String cityEnName;
+    /**
+     * 区县
+     */
+    private String regionEnName;
+    /**
+     * 价格区间
+     */
+    private String priceBlock;
+    /**
+     * 便利区间
+     */
+    private String areaBlock;
+    /**
+     * 房间数
+     */
+    private int room;
+    /**
+     * 朝向
+     */
+    private int direction;
+    /**
+     * 关键词
+     */
+    private String keywords;
+    /**
+     * 租赁方式：合租、整租
+     */
+    private int rentWay = -1;
+    /**
+     * 默认排序字段：最后更新时间
+     */
+    private String orderBy = "lastUpdateTime";
+    /**
+     * 默认排序方式：降序
+     */
+    private String orderDirection = "desc";
+    /**
+     * 索引开始位置
+     */
+    private int start = 0;
+    /**
+     * 索引结束位置
+     */
+    private int size = 5;
 
 
     public int getStart() {

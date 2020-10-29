@@ -2,7 +2,7 @@ package com.bubble.house;
 
 import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.service.ServiceResultEntity;
-import com.bubble.house.service.house.AddressService;
+import com.bubble.house.service.house.CityService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author wugang
  * date: 2019-11-21 15:17
  **/
-public class AddressServiceTests extends ApplicationTests {
+public class CityServiceTests extends ApplicationTests {
 
     @Autowired
-    private AddressService addressService;
+    private CityService cityService;
 
     /**
      * 地理编码测试
@@ -23,7 +23,7 @@ public class AddressServiceTests extends ApplicationTests {
     public void testGetMapLocation() {
         String city = "北京";
         String address = "望京SOHO";
-        ServiceResultEntity<BaiDuMapEntity> result = addressService.getBaiDuMapLocation(city, address);
+        ServiceResultEntity<BaiDuMapEntity> result = cityService.getBaiDuMapLocation(city, address);
         System.out.println(result.getResult().getLongitude());
         System.out.println(result.getResult().getLatitude());
 

@@ -1,16 +1,20 @@
 package com.bubble.house.service.house;
 
 import com.bubble.house.base.search.HouseSort;
+import com.bubble.house.base.util.HouseUtils;
 import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.house.*;
-import com.bubble.house.repository.*;
+import com.bubble.house.repository.house.*;
 import com.bubble.house.service.ServiceMultiResultEntity;
 import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.service.search.SearchService;
-import com.bubble.house.web.dto.HouseDTO;
-import com.bubble.house.web.dto.HouseDetailDTO;
-import com.bubble.house.web.dto.HousePictureDTO;
-import com.bubble.house.web.param.*;
+import com.bubble.house.web.dto.house.HouseDTO;
+import com.bubble.house.web.dto.house.HouseDetailDTO;
+import com.bubble.house.web.dto.house.HousePictureDTO;
+import com.bubble.house.web.param.DatatableSearchParam;
+import com.bubble.house.web.param.HouseParam;
+import com.bubble.house.web.param.PhotoParam;
+import com.bubble.house.web.param.RentSearchParam;
 import com.google.common.collect.Lists;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -26,9 +30,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.criteria.Predicate;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * House相关服务接口实现
@@ -42,12 +47,6 @@ public class HouseServiceImpl implements HouseService {
 
     @Value("${qiniu.cdn.prefix}")
     private String cdnPrefix;
-    private ModelMapper modelMapper;
-
-    @PostConstruct
-    public void init() {
-        modelMapper = new ModelMapper();
-    }
 
     private final SubwayRepository subwayRepository;
     private final SubwayStationRepository subwayStationRepository;
@@ -58,12 +57,14 @@ public class HouseServiceImpl implements HouseService {
     private final HouseSubscribeRepository subscribeRepository;
     private final QiNiuService qiNiuService;
     private final SearchService searchService;
+    private final HouseUtils houseUtils;
+    private final ModelMapper modelMapper;
 
     public HouseServiceImpl(SubwayRepository subwayRepository, SubwayStationRepository subwayStationRepository,
                             HouseRepository houseRepository, HouseDetailRepository houseDetailRepository,
                             HouseTagRepository houseTagRepository, HousePictureRepository housePictureRepository,
                             HouseSubscribeRepository subscribeRepository, QiNiuService qiNiuService,
-                            SearchService searchService) {
+                            SearchService searchService, HouseUtils houseUtils, ModelMapper modelMapper) {
         this.subwayRepository = subwayRepository;
         this.subwayStationRepository = subwayStationRepository;
         this.houseRepository = houseRepository;
@@ -73,6 +74,8 @@ public class HouseServiceImpl implements HouseService {
         this.subscribeRepository = subscribeRepository;
         this.qiNiuService = qiNiuService;
         this.searchService = searchService;
+        this.houseUtils = houseUtils;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -393,7 +396,7 @@ public class HouseServiceImpl implements HouseService {
             if (multiResult.getTotal() == 0) {
                 return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
             }
-            return new ServiceMultiResultEntity<>(multiResult.getTotal(), wrapperHouseResult(multiResult.getResult()));
+            return new ServiceMultiResultEntity<>(multiResult.getTotal(), houseUtils.wrapperHouseResult(multiResult.getResult()));
         }
         // 简单查询
         return simpleQuery(rentSearch);
@@ -435,69 +438,9 @@ public class HouseServiceImpl implements HouseService {
 
         List<Long> houseIds = Lists.newArrayList();
         houses.forEach(h -> houseIds.add(h.getId()));
-        List<HouseDTO> houseDTOS = wrapperHouseResult(houseIds);
+        List<HouseDTO> houseDTOS = houseUtils.wrapperHouseResult(houseIds);
         return new ServiceMultiResultEntity<>(houses.getTotalElements(), houseDTOS);
     }
 
-    /**
-     * 渲染完整的HouseDTO信息
-     */
-    private List<HouseDTO> wrapperHouseResult(List<Long> houseIds) {
-        List<HouseDTO> result = Lists.newArrayList();
-        Map<Long, HouseDTO> idToHouseMap = new HashMap<>();
-        Iterable<HouseEntity> houses = houseRepository.findAllById(houseIds);
-        houses.forEach(house -> {
-            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
-            houseDTO.setCover(this.cdnPrefix + house.getCover());
-            idToHouseMap.put(house.getId(), houseDTO);
-        });
-
-        wrapperHouseList(houseIds, idToHouseMap);
-        // 矫正顺序
-        for (Long houseId : houseIds) {
-            result.add(idToHouseMap.get(houseId));
-        }
-        return result;
-    }
-
-    /**
-     * 渲染详细信息 及 标签
-     */
-    private void wrapperHouseList(List<Long> houseIds, Map<Long, HouseDTO> idToHouseMap) {
-        List<HouseDetailEntity> details = houseDetailRepository.findAllByHouseIdIn(houseIds);
-        details.forEach(houseDetail -> {
-            HouseDTO houseDTO = idToHouseMap.get(houseDetail.getHouseId());
-            HouseDetailDTO detailDTO = modelMapper.map(houseDetail, HouseDetailDTO.class);
-            houseDTO.setHouseDetail(detailDTO);
-        });
-        List<HouseTagEntity> houseTags = houseTagRepository.findAllByHouseIdIn(houseIds);
-        houseTags.forEach(houseTag -> {
-            HouseDTO house = idToHouseMap.get(houseTag.getHouseId());
-            house.getTags().add(houseTag.getName());
-        });
-    }
-
-
-    @Override
-    public ServiceMultiResultEntity<HouseDTO> wholeMapQuery(MapSearchParam mapSearch) {
-        ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch.getCityEnName(), mapSearch.getOrderBy(), mapSearch.getOrderDirection(), mapSearch.getStart(), mapSearch.getSize());
-
-        if (serviceResult.getTotal() == 0) {
-            return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
-        }
-        List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
-        return new ServiceMultiResultEntity<>(serviceResult.getTotal(), houses);
-    }
-
-    @Override
-    public ServiceMultiResultEntity<HouseDTO> boundMapQuery(MapSearchParam mapSearch) {
-        ServiceMultiResultEntity<Long> serviceResult = searchService.mapQuery(mapSearch);
-        if (serviceResult.getTotal() == 0) {
-            return new ServiceMultiResultEntity<>(0, Lists.newArrayList());
-        }
-
-        List<HouseDTO> houses = wrapperHouseResult(serviceResult.getResult());
-        return new ServiceMultiResultEntity<>(serviceResult.getTotal(), houses);
-    }
 
 }

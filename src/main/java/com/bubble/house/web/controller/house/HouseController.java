@@ -2,22 +2,23 @@ package com.bubble.house.web.controller.house;
 
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
-import com.bubble.house.web.dto.HouseDTO;
-import com.bubble.house.web.dto.UserDTO;
-import com.bubble.house.entity.house.CityEntity;
 import com.bubble.house.entity.house.CityLevel;
-import com.bubble.house.entity.house.SubwayEntity;
-import com.bubble.house.entity.house.SubwayStationEntity;
-import com.bubble.house.web.param.MapSearchParam;
-import com.bubble.house.web.param.RentSearchParam;
-import com.bubble.house.service.ServiceMultiResultEntity;
-import com.bubble.house.service.ServiceResultEntity;
 import com.bubble.house.entity.search.HouseBucketEntity;
 import com.bubble.house.entity.search.RentValueBlockEntity;
-import com.bubble.house.service.house.AddressService;
+import com.bubble.house.service.ServiceMultiResultEntity;
+import com.bubble.house.service.ServiceResultEntity;
+import com.bubble.house.service.house.CityService;
 import com.bubble.house.service.house.HouseService;
+import com.bubble.house.service.house.MapService;
 import com.bubble.house.service.search.SearchService;
 import com.bubble.house.service.user.UserService;
+import com.bubble.house.web.dto.house.CityDTO;
+import com.bubble.house.web.dto.house.HouseDTO;
+import com.bubble.house.web.dto.house.SubwayDTO;
+import com.bubble.house.web.dto.house.SubwayStationDTO;
+import com.bubble.house.web.dto.user.UserDTO;
+import com.bubble.house.web.param.MapSearchParam;
+import com.bubble.house.web.param.RentSearchParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,17 +38,20 @@ import java.util.Map;
 @Controller
 public class HouseController {
 
-    private final AddressService addressService;
+    private final CityService cityService;
     private final HouseService houseService;
+    private final MapService mapService;
     private final UserService userService;
     private final SearchService searchService;
 
-    public HouseController(AddressService addressService, HouseService houseService,
-                           UserService userService, SearchService searchService) {
-        this.addressService = addressService;
+    public HouseController(CityService cityService, HouseService houseService,
+                           UserService userService, SearchService searchService,
+                           MapService mapService) {
+        this.cityService = cityService;
         this.houseService = houseService;
         this.userService = userService;
         this.searchService = searchService;
+        this.mapService = mapService;
     }
 
     /**
@@ -56,7 +60,7 @@ public class HouseController {
     @GetMapping("address/support/cities")
     @ResponseBody
     public ApiResponse getSupportCity() {
-        ServiceMultiResultEntity<CityEntity> result = addressService.findAllCities();
+        ServiceMultiResultEntity<CityDTO> result = cityService.findAllCities();
         if (result.getResultSize() == 0) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -69,7 +73,7 @@ public class HouseController {
     @GetMapping("address/support/regions")
     @ResponseBody
     public ApiResponse getSupportRegions(@RequestParam(name = "city_name") String cityEnName) {
-        ServiceMultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(cityEnName);
+        ServiceMultiResultEntity<CityDTO> addressResult = cityService.findAllRegionsByCityEnName(cityEnName);
         if (addressResult.getResult() == null || addressResult.getTotal() < 1) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -82,7 +86,7 @@ public class HouseController {
     @GetMapping("address/support/subway/line")
     @ResponseBody
     public ApiResponse getSupportSubwayLine(@RequestParam(name = "city_name") String cityEnName) {
-        List<SubwayEntity> subways = addressService.findAllSubwayByCityEnName(cityEnName);
+        List<SubwayDTO> subways = cityService.findAllSubwayByCityEnName(cityEnName);
         if (subways.isEmpty()) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -95,7 +99,7 @@ public class HouseController {
     @GetMapping("address/support/subway/station")
     @ResponseBody
     public ApiResponse getSupportSubwayStation(@RequestParam(name = "subway_id") Long subwayId) {
-        List<SubwayStationEntity> stationDTOS = addressService.findAllStationBySubway(subwayId);
+        List<SubwayStationDTO> stationDTOS = cityService.findAllStationBySubway(subwayId);
         if (stationDTOS.isEmpty()) {
             return ApiResponse.ofStatus(ApiStatus.NOT_FOUND);
         }
@@ -122,7 +126,7 @@ public class HouseController {
             session.setAttribute("cityEnName", rentSearch.getCityEnName());
         }
         // 获取城市信息
-        ServiceResultEntity<CityEntity> city = addressService.findCity(rentSearch.getCityEnName());
+        ServiceResultEntity<CityDTO> city = cityService.findCity(rentSearch.getCityEnName());
         if (!city.isSuccess()) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             // 跳转到index.html页面
@@ -130,7 +134,7 @@ public class HouseController {
         }
         model.addAttribute("currentCity", city.getResult());
 
-        ServiceMultiResultEntity<CityEntity> addressResult = addressService.findAllRegionsByCityEnName(rentSearch.getCityEnName());
+        ServiceMultiResultEntity<CityDTO> addressResult = cityService.findAllRegionsByCityEnName(rentSearch.getCityEnName());
         if (addressResult.getResult() == null || addressResult.getTotal() < 1) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             return "redirect:/index";
@@ -190,9 +194,9 @@ public class HouseController {
         }
 
         HouseDTO houseDTO = serviceResult.getResult();
-        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(houseDTO.getCityEnName(), houseDTO.getRegionEnName());
-        CityEntity city = addressMap.get(CityLevel.CITY);
-        CityEntity region = addressMap.get(CityLevel.REGION);
+        Map<CityLevel, CityDTO> addressMap = cityService.findCityAndRegion(houseDTO.getCityEnName(), houseDTO.getRegionEnName());
+        CityDTO city = addressMap.get(CityLevel.CITY);
+        CityDTO region = addressMap.get(CityLevel.REGION);
         model.addAttribute("city", city);
         model.addAttribute("region", region);
 
@@ -213,7 +217,7 @@ public class HouseController {
     @GetMapping("rent/house/map")
     public String rentMapPage(@RequestParam(value = "cityEnName") String cityEnName, Model model,
                               HttpSession session, RedirectAttributes redirectAttributes) {
-        ServiceResultEntity<CityEntity> city = addressService.findCity(cityEnName);
+        ServiceResultEntity<CityDTO> city = cityService.findCity(cityEnName);
         if (!city.isSuccess()) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             return "redirect:/index";
@@ -221,7 +225,7 @@ public class HouseController {
             session.setAttribute("cityName", cityEnName);
             model.addAttribute("city", city.getResult());
         }
-        ServiceMultiResultEntity<CityEntity> regions = addressService.findAllRegionsByCityEnName(cityEnName);
+        ServiceMultiResultEntity<CityDTO> regions = cityService.findAllRegionsByCityEnName(cityEnName);
 
         ServiceMultiResultEntity<HouseBucketEntity> serviceResult = searchService.mapAggregate(cityEnName);
 
@@ -242,11 +246,11 @@ public class HouseController {
         }
         ServiceMultiResultEntity<HouseDTO> serviceMultiResult;
         if (mapSearch.getLevel() < 13) {
-            serviceMultiResult = houseService.wholeMapQuery(mapSearch);
+            serviceMultiResult = mapService.wholeMapQuery(mapSearch);
         } else {
             // 小地图查询必须要传递地图边界参数
             // 房源信息列表和地图界面联动
-            serviceMultiResult = houseService.boundMapQuery(mapSearch);
+            serviceMultiResult = mapService.boundMapQuery(mapSearch);
         }
 
         ApiResponse response = ApiResponse.ofSuccess(serviceMultiResult.getResult());

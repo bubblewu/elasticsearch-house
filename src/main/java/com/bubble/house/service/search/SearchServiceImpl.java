@@ -1,23 +1,20 @@
 package com.bubble.house.service.search;
 
-import com.bubble.house.base.search.HouseSort;
-import com.bubble.house.base.search.HouseIndexConstants;
-import com.bubble.house.base.search.HouseIndexMessage;
-import com.bubble.house.base.search.HouseIndexTemplate;
-import com.bubble.house.base.search.HouseSuggest;
+import com.bubble.house.base.search.*;
 import com.bubble.house.entity.BaiDuMapEntity;
 import com.bubble.house.entity.house.*;
-import com.bubble.house.web.param.RentSearchParam;
+import com.bubble.house.entity.search.HouseBucketEntity;
+import com.bubble.house.entity.search.RentValueBlockEntity;
+import com.bubble.house.repository.house.CityRepository;
+import com.bubble.house.repository.house.HouseDetailRepository;
+import com.bubble.house.repository.house.HouseRepository;
+import com.bubble.house.repository.house.HouseTagRepository;
 import com.bubble.house.service.ServiceMultiResultEntity;
 import com.bubble.house.service.ServiceResultEntity;
-import com.bubble.house.entity.search.HouseBucketEntity;
+import com.bubble.house.service.house.CityService;
+import com.bubble.house.service.house.MapService;
 import com.bubble.house.web.param.MapSearchParam;
-import com.bubble.house.entity.search.RentValueBlockEntity;
-import com.bubble.house.repository.CityRepository;
-import com.bubble.house.repository.HouseDetailRepository;
-import com.bubble.house.repository.HouseRepository;
-import com.bubble.house.repository.HouseTagRepository;
-import com.bubble.house.service.house.AddressService;
+import com.bubble.house.web.param.RentSearchParam;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -86,19 +83,19 @@ public class SearchServiceImpl implements SearchService {
     private final HouseDetailRepository houseDetailRepository;
     private final CityRepository cityRepository;
     private final HouseTagRepository tagRepository;
-    private final AddressService addressService;
+    private final MapService mapService;
     private final RestHighLevelClient restHighLevelClient;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     public SearchServiceImpl(HouseRepository houseRepository, HouseDetailRepository houseDetailRepository,
-                             CityRepository cityRepository, HouseTagRepository tagRepository, AddressService addressService,
-                             RestHighLevelClient restHighLevelClient,
+                             CityRepository cityRepository, HouseTagRepository tagRepository,
+                             MapService mapService, RestHighLevelClient restHighLevelClient,
                              KafkaTemplate<String, String> kafkaTemplate) {
         this.houseRepository = houseRepository;
         this.houseDetailRepository = houseDetailRepository;
         this.cityRepository = cityRepository;
         this.tagRepository = tagRepository;
-        this.addressService = addressService;
+        this.mapService = mapService;
         this.restHighLevelClient = restHighLevelClient;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -144,7 +141,7 @@ public class SearchServiceImpl implements SearchService {
             if (result == DocWriteResponse.Result.DELETED) {
                 LOGGER.info("删除[{}]成功.", houseId);
 
-                ServiceResultEntity serviceResult = addressService.removeLbs(houseId);
+                ServiceResultEntity serviceResult = mapService.removeLbs(houseId);
                 if (!serviceResult.isSuccess()) {
                     LOGGER.error("删除LBS data [{}]失败.", houseId);
                     // 重新加入消息队列
@@ -181,7 +178,7 @@ public class SearchServiceImpl implements SearchService {
         CityEntity region = cityRepository.findByEnNameAndLevel(house.getRegionEnName(), CityLevel.REGION.getValue());
 
         String address = city.getCnName() + region.getCnName() + house.getStreet() + house.getDistrict() + detail.getDetailAddress();
-        ServiceResultEntity<BaiDuMapEntity> location = addressService.getBaiDuMapLocation(city.getCnName(), address);
+        ServiceResultEntity<BaiDuMapEntity> location = mapService.getBaiDuMapLocation(city.getCnName(), address);
         if (!location.isSuccess()) {
             this.index(message.getHouseId(), message.getRetry() + 1);
             return;
@@ -213,7 +210,7 @@ public class SearchServiceImpl implements SearchService {
                 success = deleteAndCreate(totalHit, indexTemplate);
             }
 
-            ServiceResultEntity serviceResult = addressService.lbsUpload(location.getResult(), house.getStreet() + house.getDistrict(),
+            ServiceResultEntity serviceResult = mapService.lbsUpload(location.getResult(), house.getStreet() + house.getDistrict(),
                     city.getCnName() + region.getCnName() + house.getStreet() + house.getDistrict(),
                     message.getHouseId(), house.getPrice(), house.getArea());
 

@@ -1,6 +1,7 @@
 package com.bubble.house.base.config;
 
 import com.bubble.house.base.config.interceptor.CustomInterceptor;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -80,6 +81,18 @@ public class WebMVCConfig implements WebMvcConfigurer, ApplicationContextAware {
         ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
         viewResolver.setTemplateEngine(templateEngine());
         return viewResolver;
+    }
+
+    /* --- 数据库Bean和Service/Web层的DTO的转换 --- */
+
+    /**
+     * Spring自带的Bean Util工具
+     *
+     * @return ModelMapper
+     */
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 
     /* --- 静态资源加载配置 --- */

@@ -1,4 +1,4 @@
-package com.bubble.house.repository;
+package com.bubble.house.repository.house;
 
 import com.bubble.house.entity.house.SubwayStationEntity;
 import org.springframework.data.repository.CrudRepository;
@@ -13,6 +13,12 @@ import java.util.List;
  **/
 public interface SubwayStationRepository extends CrudRepository<SubwayStationEntity, Long> {
 
+    /**
+     * 根据地铁ID查找站点集合
+     *
+     * @param subwayId 地铁ID
+     * @return 站点集合
+     */
     List<SubwayStationEntity> findAllBySubwayId(Long subwayId);
 
 }

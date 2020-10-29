@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
- * tag
+ * 房屋标签
  *
  * @author wugang
  * date: 2019-11-05 18:40

@@ -2,7 +2,7 @@ package com.bubble.house.base.config.security;
 
 import com.bubble.house.base.util.LoginUserUtils;
 import com.bubble.house.entity.user.UserEntity;
-import com.bubble.house.service.user.SMSService;
+import com.bubble.house.service.user.SmsService;
 import com.bubble.house.service.user.UserService;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
     private UserService userService;
 
     @Autowired
-    private SMSService smsService;
+    private SmsService smsService;
 
     /**
      * 用户鉴权

@@ -3,17 +3,17 @@ package com.bubble.house.web.controller.admin;
 import com.bubble.house.base.api.ApiDataTableResponse;
 import com.bubble.house.base.api.ApiResponse;
 import com.bubble.house.base.api.ApiStatus;
-import com.bubble.house.entity.QiNiuEntity;
-import com.bubble.house.web.dto.HouseDTO;
-import com.bubble.house.web.dto.HouseDetailDTO;
-import com.bubble.house.entity.house.*;
-import com.bubble.house.web.param.DatatableSearchParam;
-import com.bubble.house.web.param.HouseParam;
+import com.bubble.house.entity.house.CityLevel;
+import com.bubble.house.entity.house.HouseOperation;
+import com.bubble.house.entity.house.HouseStatus;
 import com.bubble.house.service.ServiceMultiResultEntity;
 import com.bubble.house.service.ServiceResultEntity;
-import com.bubble.house.service.house.AddressService;
+import com.bubble.house.service.house.CityService;
 import com.bubble.house.service.house.HouseService;
 import com.bubble.house.service.house.QiNiuService;
+import com.bubble.house.web.dto.house.*;
+import com.bubble.house.web.param.DatatableSearchParam;
+import com.bubble.house.web.param.HouseParam;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.qiniu.http.Response;
@@ -50,14 +50,14 @@ public class AdminController {
     private String imageLocation;
 
     private final QiNiuService qiNiuService;
-    private final AddressService addressService;
+    private final CityService cityService;
     private final HouseService houseService;
     private final Gson gson;
 
-    public AdminController(QiNiuService qiNiuService, AddressService addressService,
+    public AdminController(QiNiuService qiNiuService, CityService cityService,
                            HouseService houseService, Gson gson) {
         this.qiNiuService = qiNiuService;
-        this.addressService = addressService;
+        this.cityService = cityService;
         this.houseService = houseService;
         this.gson = gson;
     }
@@ -142,7 +142,7 @@ public class AdminController {
             return ApiResponse.ofMessage(HttpStatus.BAD_REQUEST.value(), "必须上传图片");
         }
 
-        Map<CityLevel, CityEntity> addressMap = this.addressService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
+        Map<CityLevel, CityDTO> addressMap = this.cityService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
         if (addressMap.keySet().size() != 2) {
             return ApiResponse.ofStatus(ApiStatus.NOT_VALID_PARAM);
         }
@@ -170,17 +170,17 @@ public class AdminController {
         HouseDTO result = serviceResult.getResult();
         model.addAttribute("house", result);
 
-        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(result.getCityEnName(), result.getRegionEnName());
+        Map<CityLevel, CityDTO> addressMap = cityService.findCityAndRegion(result.getCityEnName(), result.getRegionEnName());
         model.addAttribute("city", addressMap.get(CityLevel.CITY));
         model.addAttribute("region", addressMap.get(CityLevel.REGION));
 
         HouseDetailDTO detailDTO = result.getHouseDetail();
-        ServiceResultEntity<SubwayEntity> subwayServiceResult = addressService.findSubway(detailDTO.getSubwayLineId());
+        ServiceResultEntity<SubwayDTO> subwayServiceResult = cityService.findSubway(detailDTO.getSubwayLineId());
         if (subwayServiceResult.isSuccess()) {
             model.addAttribute("subway", subwayServiceResult.getResult());
         }
 
-        ServiceResultEntity<SubwayStationEntity> subwayStationServiceResult = addressService.findSubwayStation(detailDTO.getSubwayStationId());
+        ServiceResultEntity<SubwayStationDTO> subwayStationServiceResult = cityService.findSubwayStation(detailDTO.getSubwayStationId());
         if (subwayStationServiceResult.isSuccess()) {
             model.addAttribute("station", subwayStationServiceResult.getResult());
         }
@@ -197,7 +197,7 @@ public class AdminController {
         if (bindingResult.hasErrors()) {
             return new ApiResponse(HttpStatus.BAD_REQUEST.value(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
         }
-        Map<CityLevel, CityEntity> addressMap = addressService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
+        Map<CityLevel, CityDTO> addressMap = cityService.findCityAndRegion(houseParam.getCityEnName(), houseParam.getRegionEnName());
         if (addressMap.keySet().size() != 2) {
             return ApiResponse.ofSuccess(ApiStatus.NOT_VALID_PARAM);
         }
@@ -233,8 +233,8 @@ public class AdminController {
             InputStream inputStream = file.getInputStream();
             Response response = qiNiuService.uploadFile(inputStream);
             if (response.isOK()) {
-                QiNiuEntity qiNiuEntity = gson.fromJson(response.bodyString(), QiNiuEntity.class);
-                return ApiResponse.ofSuccess(qiNiuEntity);
+                QiNiuPutRet qiNiuPutRet = gson.fromJson(response.bodyString(), QiNiuPutRet.class);
+                return ApiResponse.ofSuccess(qiNiuPutRet);
             } else {
                 return ApiResponse.ofMessage(response.statusCode, response.getInfo());
             }
