@@ -26,7 +26,7 @@
         <qiniu-java-jdk.version>[7.3.0, 7.3.99]</qiniu-java-jdk.version>
         <aliyun-java-sdk-core.version>4.4.6</aliyun-java-sdk-core.version>
         <aliyun-java-sdk-dysmsapi.version>1.1.0</aliyun-java-sdk-dysmsapi.version>
-        <es.version>7.4.2</es.version>
+        <es.version>7.11.2</es.version>
         <disruptor.version>3.4.2</disruptor.version>
         <validation.version>2.0.1.Final</validation.version>
     </properties>
